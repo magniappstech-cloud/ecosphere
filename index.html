@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ЭкоСфера Безопасности — портал культуры безопасности. Наука, практика, творчество.">
+<meta name="theme-color" content="#0B1F3A">
+<title>ЭкоСфера Безопасности</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- Swiper.js — for cascade vertical gallery -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- ════ GLOBAL PARALLAX CANVAS BACKGROUND ════
+     Fixed canvas sits behind every page and section.
+     JS draws animated gradient orbs that scroll independently.
+     Content layers slide over it — creating depth without z-fighting.
+-->
+<div id="world-bg" aria-hidden="true">
+  <canvas id="world-canvas"></canvas>
+</div>
+
+<!-- ════ STICKY NAV ════ -->
+<nav id="sticky-nav" role="navigation" aria-label="Основная навигация">
+  <a class="nav-logo" href="#" onclick="goHome();return false" aria-label="На главную">
+    <span class="nav-dot" aria-hidden="true"></span>ЭкоСфера
+  </a>
+  <div class="nav-links">
+    <a href="#" onclick="showPage('p-home');return false"       id="nl-home"       class="active">Главная</a>
+    <a href="#" onclick="showPage('p-art');return false"        id="nl-art"               >Искусство</a>
+    <a href="#" onclick="showPage('p-projects');return false"   id="nl-projects"          >Проекты</a>
+    <a href="#" onclick="showPage('p-news');return false"       id="nl-news"              >Новости</a>
+    <a href="#" onclick="showPage('p-initiative');return false" id="nl-initiative"        >Инициатива</a>
+    <a href="#" onclick="showPage('p-register');return false"   id="nl-register" class="nav-cta">Регистрация</a>
+  </div>
+  <button class="nav-burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="mob-menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ════ MOBILE MENU ════ -->
+<div id="mob-menu" role="dialog" aria-modal="true" aria-label="Мобильное меню">
+  <button id="mob-close" aria-label="Закрыть меню">✕</button>
+  <a href="#" onclick="showPage('p-home');closeMob();return false">Главная</a>
+  <a href="#" onclick="showPage('p-art');closeMob();return false">Искусство</a>
+  <a href="#" onclick="showPage('p-projects');closeMob();return false">Проекты</a>
+  <a href="#" onclick="showPage('p-news');closeMob();return false">Новости</a>
+  <a href="#" onclick="showPage('p-initiative');closeMob();return false">Инициатива</a>
+  <a href="#" onclick="showPage('p-register');closeMob();return false" class="btn btn-primary" style="margin-top:12px">Регистрация</a>
+</div>
+<div id="mob-overlay" aria-hidden="true"></div>
+
+<!-- Scroll progress indicator -->
+<div id="scroll-progress" aria-hidden="true"></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 1 — HOMEPAGE
+     ══════════════════════════════════════════════════════════════ -->
+<div class="page active" id="p-home">
+
+  <section id="hero" aria-label="Главный экран">
+    <div class="hero-bg" id="hero-bg" aria-hidden="true"></div>
+    <div class="hero-grid-bg" aria-hidden="true"></div>
+    <div class="hero-orb orb-1" aria-hidden="true"></div>
+    <div class="hero-orb orb-2" aria-hidden="true"></div>
+    <div class="hero-orb orb-3" aria-hidden="true"></div>
+
+    <div class="hero-topbar">
+      <div class="hero-logo-wrap"><span class="hero-dot" aria-hidden="true"></span>ЭкоСфера Безопасности</div>
+      <div class="hero-badge" aria-hidden="true"><span class="hero-badge-dot"></span>Портал культуры безопасности</div>
+    </div>
+
+    <div class="masonry" id="masonry" role="list">
+
+      <article class="mb mb-1" tabindex="0" role="listitem" onclick="showPage('p-art')" aria-label="Безопасность языком искусства — перейти в раздел">
+        <!-- 60-30-10: real photo (visual) + dark overlay 60% + green accent 10% on chip -->
+        <div class="mb-bg" style="background-image:url('https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=900&q=80');background-size:cover;background-position:center;" aria-hidden="true"></div>
+        <div class="mb-overlay" aria-hidden="true"></div>
+        <svg class="mb-deco" aria-hidden="true" width="130" height="130" viewBox="0 0 130 130" fill="none">
+          <circle cx="65" cy="65" r="60" stroke="rgba(42,245,152,.7)" stroke-width="1"/>
+          <circle cx="65" cy="65" r="44" stroke="rgba(42,245,152,.5)" stroke-width="1"/>
+          <circle cx="65" cy="65" r="28" stroke="rgba(42,245,152,.35)" stroke-width="1"/>
+          <circle cx="65" cy="65" r="6" fill="rgba(42,245,152,.8)"/>
+          <line x1="65" y1="5" x2="65" y2="125" stroke="rgba(42,245,152,.2)" stroke-width="1"/>
+          <line x1="5" y1="65" x2="125" y2="65" stroke="rgba(42,245,152,.2)" stroke-width="1"/>
+        </svg>
+        <div class="mb-body">
+          <div class="mb-chip"><span class="mb-chip-tag">Главный раздел</span></div>
+          <div class="mb-title">Безопасность<br>языком искусства</div>
+          <div class="mb-desc">Музыка, арт, видео — новый взгляд на культуру безопасности</div>
+        </div>
+      </article>
+
+      <article class="mb mb-2" tabindex="0" role="listitem" onclick="showPage('p-projects')" aria-label="Проекты платформы">
+        <div class="mb-bg" style="background-image:url('https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=600&q=80');background-size:cover;background-position:center;" aria-hidden="true"></div>
+        <div class="mb-overlay" style="background:linear-gradient(155deg,rgba(0,0,0,.25),rgba(0,0,0,.68));" aria-hidden="true"></div>
+        <div class="mb-body">
+          <div class="mb-chip"><span class="mb-chip-tag">Инициативы</span></div>
+          <div class="mb-title">Проекты, в которых мы участвуем</div>
+          <div class="mb-desc">847 активных инициатив по всему миру</div>
+        </div>
+      </article>
+
+      <article class="mb mb-3" tabindex="0" role="listitem" onclick="showPage('p-news')" aria-label="Статьи лидеров">
+        <div class="mb-bg" style="background-image:url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&q=80');background-size:cover;background-position:center;" aria-hidden="true"></div>
+        <div class="mb-overlay" style="background:linear-gradient(155deg,rgba(0,0,0,.20),rgba(5,30,15,.72));" aria-hidden="true"></div>
+        <div class="mb-body">
+          <div class="mb-chip"><span class="mb-chip-tag">Экспертиза</span></div>
+          <div class="mb-title">Статьи наших лидеров</div>
+          <div class="mb-desc">ISO, ГОСТ и нормативы — понятным языком</div>
+        </div>
+      </article>
+
+      <article class="mb mb-4" tabindex="0" role="listitem" onclick="showPage('p-news')" aria-label="Новости и события">
+        <div class="mb-bg" style="background-image:url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&q=80');background-size:cover;background-position:center;" aria-hidden="true"></div>
+        <div class="mb-overlay" style="background:linear-gradient(155deg,rgba(0,0,0,.22),rgba(7,14,38,.70));" aria-hidden="true"></div>
+        <div class="mb-body">
+          <div class="mb-chip"><span class="mb-chip-tag">Актуально</span></div>
+          <div class="mb-title">Новости и события</div>
+          <div class="mb-desc">Последние обновления</div>
+        </div>
+      </article>
+
+      <article class="mb mb-5" tabindex="0" role="listitem" onclick="showPage('p-initiative')" aria-label="Предложить инициативу">
+        <div class="mb-bg" style="background-image:url('https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=600&q=80');background-size:cover;background-position:center;" aria-hidden="true"></div>
+        <div class="mb-overlay" style="background:linear-gradient(155deg,rgba(0,0,0,.20),rgba(5,14,30,.68));" aria-hidden="true"></div>
+        <div class="mb-body">
+          <div class="mb-chip"><span class="mb-chip-tag">Участвовать</span></div>
+          <div class="mb-title">Предложить инициативу</div>
+          <div class="mb-desc">Ваш голос меняет мир</div>
+        </div>
+      </article>
+
+      <article class="mb mb-6" tabindex="0" role="listitem" onclick="showPage('p-register')" aria-label="Зарегистрироваться">
+        <div class="mb-bg" style="background-image:url('https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&q=80');background-size:cover;background-position:center;" aria-hidden="true"></div>
+        <div class="mb-overlay" style="background:linear-gradient(155deg,rgba(10,40,20,.15),rgba(10,40,20,.50));" aria-hidden="true"></div>
+        <div class="mb-body">
+          <div class="mb-chip"><span class="mb-chip-tag">Присоединиться</span></div>
+          <div class="mb-title">Зарегистрироваться →</div>
+          <div class="mb-desc">Станьте частью сообщества 12 400+ человек</div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section id="slogan" class="stagger-section">
+    <div class="sec-label both stagger-item" data-stagger="0">Миссия платформы</div>
+    <h1 class="slogan-h1 stagger-item" data-stagger="1">Безопасность —<br>это <em>культура</em> будущего</h1>
+    <p class="slogan-h2 stagger-item" data-stagger="2">Наука. Практика. Творчество.</p>
+    <p class="slogan-body stagger-item" data-stagger="3">Объединяем экспертов, энтузиастов и лидеров вместе — создаём пространство, где знания о безопасности становятся частью жизни каждого.</p>
+    <div class="slogan-btns stagger-item" data-stagger="4">
+      <a class="btn btn-primary btn-lg" href="#metrics">Исследовать платформу →</a>
+      <a class="btn btn-ghost btn-lg" href="#" onclick="showPage('p-initiative');return false">Предложить инициативу</a>
+    </div>
+  </section>
+
+  <section id="metrics">
+    <div class="metrics-grid">
+      <div class="metric reveal" data-target="12400" data-suffix="+">
+        <span class="metric-icon" aria-hidden="true">👥</span>
+        <span class="metric-val" id="cnt1">0</span>
+        <span class="metric-label">Участников</span>
+      </div>
+      <div class="metric reveal" data-target="847" style="transition-delay:.1s">
+        <span class="metric-icon" aria-hidden="true">🌱</span>
+        <span class="metric-val" id="cnt2">0</span>
+        <span class="metric-label">Проектов</span>
+      </div>
+      <div class="metric reveal" data-target="3200" data-suffix="+" style="transition-delay:.2s">
+        <span class="metric-icon" aria-hidden="true">📄</span>
+        <span class="metric-val" id="cnt3">0</span>
+        <span class="metric-label">Документов</span>
+      </div>
+      <div class="metric reveal" data-target="94" style="transition-delay:.3s">
+        <span class="metric-icon" aria-hidden="true">🌍</span>
+        <span class="metric-val" id="cnt4">0</span>
+        <span class="metric-label">Стран</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="radar" class="sec stagger-section">
+    <div class="container">
+      <div class="radar-layout">
+        <div>
+          <div class="sec-label stagger-item" data-stagger="0">Интерактивная карта</div>
+          <h2 class="sec-h2 stagger-item" data-stagger="1">Радар безопасности</h2>
+          <p class="sec-sub stagger-item" data-stagger="2">Живая карта активных инициатив по всему миру. 🟢 Завершённые · 🔴 В процессе. Наведите на точку — увидите город.</p>
+          <a class="btn btn-primary stagger-item" data-stagger="3" href="#" onclick="showPage('p-projects');return false">Все проекты →</a>
+        </div>
+        <div class="radar-wrap stagger-item" data-stagger="1">
+          <div class="radar-tooltip" id="r-tip" role="tooltip" aria-live="polite"></div>
+          <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+            <circle cx="200" cy="200" r="185" stroke="rgba(42,245,152,.06)" stroke-width="1"/>
+            <circle cx="200" cy="200" r="145" stroke="rgba(42,245,152,.08)" stroke-width="1"/>
+            <circle cx="200" cy="200" r="105" stroke="rgba(42,245,152,.1)"  stroke-width="1"/>
+            <circle cx="200" cy="200" r="65"  stroke="rgba(42,245,152,.13)" stroke-width="1"/>
+            <line x1="15" y1="200" x2="385" y2="200" stroke="rgba(42,245,152,.05)" stroke-width="1"/>
+            <line x1="200" y1="15"  x2="200" y2="385" stroke="rgba(42,245,152,.05)" stroke-width="1"/>
+            <line x1="69"  y1="69"  x2="331" y2="331" stroke="rgba(42,245,152,.04)" stroke-width="1" stroke-dasharray="4 6"/>
+            <line x1="331" y1="69"  x2="69"  y2="331" stroke="rgba(42,245,152,.04)" stroke-width="1" stroke-dasharray="4 6"/>
+            <path d="M200,200 L200,15 A185,185 0 0,1 385,200 Z" fill="rgba(42,245,152,.035)">
+              <animateTransform attributeName="transform" type="rotate" from="0 200 200" to="360 200 200" dur="5s" repeatCount="indefinite"/>
+            </path>
+            <circle cx="200" cy="200" r="5" fill="var(--c-green)"/>
+            <circle cx="200" cy="200" r="16" fill="rgba(42,245,152,.14)"/>
+            <g class="radar-dot" data-city="Москва"          data-ok="1" tabindex="0" role="button" aria-label="Москва — завершён"><circle cx="272" cy="132" r="6"  fill="var(--c-green)"><animate attributeName="opacity" values="1;.15;1" dur="2.2s" repeatCount="indefinite"/></circle><circle cx="272" cy="132" r="14" fill="rgba(42,245,152,.14)"/></g>
+            <g class="radar-dot" data-city="Санкт-Петербург" data-ok="1" tabindex="0" role="button" aria-label="Санкт-Петербург — завершён"><circle cx="142" cy="258" r="6"  fill="var(--c-green)"><animate attributeName="opacity" values="1;.15;1" dur="3.1s" repeatCount="indefinite"/></circle><circle cx="142" cy="258" r="14" fill="rgba(42,245,152,.14)"/></g>
+            <g class="radar-dot" data-city="Казань"          data-ok="0" tabindex="0" role="button" aria-label="Казань — в процессе"><circle cx="318" cy="282" r="6"  fill="var(--c-coral)"><animate attributeName="opacity" values="1;.15;1" dur="1.8s" repeatCount="indefinite"/></circle><circle cx="318" cy="282" r="14" fill="rgba(255,107,107,.14)"/></g>
+            <g class="radar-dot" data-city="Екатеринбург"    data-ok="1" tabindex="0" role="button" aria-label="Екатеринбург — завершён"><circle cx="96"  cy="145" r="6"  fill="var(--c-green)"><animate attributeName="opacity" values="1;.15;1" dur="2.7s" repeatCount="indefinite"/></circle><circle cx="96"  cy="145" r="14" fill="rgba(42,245,152,.14)"/></g>
+            <g class="radar-dot" data-city="Новосибирск"     data-ok="0" tabindex="0" role="button" aria-label="Новосибирск — в процессе"><circle cx="240" cy="326" r="6"  fill="var(--c-coral)"><animate attributeName="opacity" values="1;.15;1" dur="3.5s" repeatCount="indefinite"/></circle><circle cx="240" cy="326" r="14" fill="rgba(255,107,107,.14)"/></g>
+            <g class="radar-dot" data-city="Краснодар"       data-ok="1" tabindex="0" role="button" aria-label="Краснодар — завершён"><circle cx="176" cy="95"  r="5"  fill="var(--c-green)"><animate attributeName="opacity" values="1;.15;1" dur="2s"   repeatCount="indefinite"/></circle><circle cx="176" cy="95"  r="12" fill="rgba(42,245,152,.12)"/></g>
+            <g class="radar-dot" data-city="Ростов"          data-ok="0" tabindex="0" role="button" aria-label="Ростов — в процессе"><circle cx="332" cy="172" r="5"  fill="var(--c-coral)"><animate attributeName="opacity" values="1;.15;1" dur="4s"   repeatCount="indefinite"/></circle><circle cx="332" cy="172" r="12" fill="rgba(255,107,107,.12)"/></g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="leaders" class="stagger-section">
+    <div class="container" style="margin-bottom:var(--sp-8)">
+      <div class="sec-label stagger-item" data-stagger="0">Сообщество</div>
+      <h2 class="sec-h2 stagger-item" data-stagger="1">Лидеры платформы</h2>
+    </div>
+    <div class="leaders-outer stagger-item" data-stagger="2" style="padding:0 var(--sp-8)">
+      <div class="leaders-track" id="ltck">
+        <div class="leader-card"><div class="leader-photo" aria-hidden="true">👷</div><div class="leader-info"><div class="leader-name">Александр Петров</div><div class="leader-role">Эксперт ISO 45001 · Москва</div><div class="leader-quote">«Безопасность — это не свод правил, это мировоззрение целого поколения.»</div></div></div>
+        <div class="leader-card"><div class="leader-photo" aria-hidden="true">🔬</div><div class="leader-info"><div class="leader-name">Елена Смирнова</div><div class="leader-role">Эколог-исследователь · СПб</div><div class="leader-quote">«Каждое действие сегодня — это среда обитания для тех, кто придёт после нас.»</div></div></div>
+        <div class="leader-card"><div class="leader-photo" aria-hidden="true">🌿</div><div class="leader-info"><div class="leader-name">Мария Козлова</div><div class="leader-role">Активист · Новосибирск</div><div class="leader-quote">«2000+ человек объединились за год. Следующий шаг — 10 000.»</div></div></div>
+        <div class="leader-card"><div class="leader-photo" aria-hidden="true">⚡</div><div class="leader-info"><div class="leader-name">Дмитрий Орлов</div><div class="leader-role">Энергетик · Екатеринбург</div><div class="leader-quote">«ISO 50001 — не затраты. Это инвестиция в следующие 50 лет.»</div></div></div>
+        <div class="leader-card"><div class="leader-photo" aria-hidden="true">🎨</div><div class="leader-info"><div class="leader-name">Анна Волкова</div><div class="leader-role">Арт-директор · Казань</div><div class="leader-quote">«Искусство меняет сознание быстрее любого регламента или лекции.»</div></div></div>
+        <div class="leader-card"><div class="leader-photo" aria-hidden="true">🏗️</div><div class="leader-info"><div class="leader-name">Игорь Николаев</div><div class="leader-role">Строитель · Краснодар</div><div class="leader-quote">«Каждый ноль в статистике несчастных случаев — это спасённая жизнь.»</div></div></div>
+      </div>
+    </div>
+    <div class="leader-dots" role="tablist" aria-label="Навигация по лидерам">
+      <button class="ldot on" onclick="gL(0)" role="tab" aria-selected="true"  aria-label="Слайд 1"></button>
+      <button class="ldot"    onclick="gL(1)" role="tab" aria-selected="false" aria-label="Слайд 2"></button>
+      <button class="ldot"    onclick="gL(2)" role="tab" aria-selected="false" aria-label="Слайд 3"></button>
+      <button class="ldot"    onclick="gL(3)" role="tab" aria-selected="false" aria-label="Слайд 4"></button>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-logo"><span aria-hidden="true">🌿</span>ЭкоСфера</div>
+          <p class="footer-desc">Портал культуры безопасности. Объединяем науку, практику и творчество ради безопасного будущего.</p>
+          <address class="footer-contacts" style="font-style:normal">
+            <a class="footer-contact" href="tel:+74951234567">📞 +7 (495) 123-45-67</a>
+            <a class="footer-contact" href="mailto:info@ecosfera.ru">✉️ info@ecosfera.ru</a>
+          </address>
+          <div class="footer-socials">
+            <a class="footer-social" href="#" aria-label="Telegram">✈️</a>
+            <a class="footer-social" href="#" aria-label="VK">🔷</a>
+            <a class="footer-social" href="#" aria-label="Мессенджер">💬</a>
+            <a class="footer-social" href="#" aria-label="YouTube">▶️</a>
+          </div>
+        </div>
+        <nav class="footer-col" aria-label="Навигация: платформа">
+          <div class="footer-col-h">Платформа</div>
+          <ul>
+            <li><a href="#" onclick="showPage('p-art');return false">Искусство</a></li>
+            <li><a href="#" onclick="showPage('p-projects');return false">Проекты</a></li>
+            <li><a href="#" onclick="showPage('p-news');return false">Новости</a></li>
+            <li><a href="#">Благотворительность</a></li>
+          </ul>
+        </nav>
+        <nav class="footer-col" aria-label="Навигация: сообщество">
+          <div class="footer-col-h">Сообщество</div>
+          <ul>
+            <li><a href="#">Волонтёры</a></li>
+            <li><a href="#" onclick="showPage('p-initiative');return false">Инициативы</a></li>
+            <li><a href="#">Лидеры</a></li>
+            <li><a href="#">О проекте</a></li>
+          </ul>
+        </nav>
+        <nav class="footer-col" aria-label="Навигация: ресурсы">
+          <div class="footer-col-h">Ресурсы</div>
+          <ul>
+            <li><a href="#">База документов</a></li>
+            <li><a href="#">ISO-справочник</a></li>
+            <li><a href="#">API</a></li>
+            <li><a href="#">Помощь</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 ЭкоСфера Безопасности. Все права защищены.</span>
+        <div class="footer-dev">Разработано: <a href="#">MagniApps Tech</a></div>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /p-home -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 2 — ИСКУССТВО
+     ══════════════════════════════════════════════════════════════ -->
+<div class="page" id="p-art">
+  <div class="page-inner-pad">
+
+    <section id="music-hero">
+      <div class="container">
+        <div class="sec-label both reveal" style="justify-content:center;margin-bottom:var(--sp-8)">Музыкальный раздел</div>
+        <h2 class="sec-h2 reveal" style="text-align:center;margin-bottom:var(--sp-12);font-size:clamp(28px,4vw,52px)">Музыка безопасности</h2>
+        <div class="music-layout">
+          <!-- ── Gramophone Scene ─────────────────────────────────
+               .scene            — perspective container (relative)
+               .gram-base        — static gramophone image (never rotates)
+               .vinyl-wrapper    — tilted 3-D wrapper (rotateX match angle)
+                 .vinyl-img      — ONLY this element spins (@keyframes vinylSpin)
+                 .vinyl-glare    — static conic-gradient glare (screen blend)
+               .gram-arm         — static tone-arm needle
+               ──────────────────────────────────────────────────── -->
+          <div class="gram-wrap">
+            <div class="scene" id="gram" aria-hidden="true">
+
+              <!-- Static gramophone body/base image -->
+              <img
+                class="gram-base"
+                id="gram-base-img"
+                src="assets/img/gramophone.png"
+                alt=""
+                aria-hidden="true"
+                onerror="this.style.display='none';document.getElementById('gram-base-fb').style.display='flex';"
+              >
+              <!-- Fallback emoji when image not available -->
+              <div class="gram-base-fallback" id="gram-base-fb" style="display:none" aria-hidden="true">🎷</div>
+
+              <!-- Vinyl wrapper: tilted to match gramophone angle via rotateX(65deg) -->
+              <div class="vinyl-wrapper">
+
+                <!-- The vinyl disc — THIS is the only element that rotates -->
+                <img
+                  class="vinyl-img"
+                  id="vinyl"
+                  src="assets/img/vinyl.png"
+                  alt=""
+                  aria-hidden="true"
+                  onerror="this.style.background='conic-gradient(from 0deg,#1a1a2a,#2a2a3a,#1a1a2a,#2a2a3a,#1a1a2a)';"
+                >
+
+                <!-- Centre label on the disc (rotates with disc) -->
+                <div class="vinyl-center-label" id="gram-label">🎵</div>
+
+                <!-- Static glare — does NOT rotate.
+                     conic-gradient simulates light catching the vinyl grooves.
+                     mix-blend-mode:screen hides dark parts, shows only brightness. -->
+                <div class="vinyl-glare" aria-hidden="true"></div>
+
+              </div><!-- /vinyl-wrapper -->
+
+              <!-- Static tone-arm needle -->
+              <div class="gram-arm" id="arm" aria-hidden="true"></div>
+
+            </div><!-- /scene -->
+            <div style="text-align:center">
+              <div style="font-family:var(--f-display);font-size:16px;font-weight:700;margin-bottom:4px" id="now-title" aria-live="polite">Выберите трек</div>
+              <div style="font-family:var(--f-data);font-size:12px;color:var(--c-text-2)" id="now-artist" aria-live="polite">—</div>
+            </div>
+            <div class="player-controls" role="group" aria-label="Управление плеером">
+              <button class="ctrl-btn" onclick="prevTrack()" aria-label="Предыдущий трек">⏮</button>
+              <button class="play-btn" id="play-btn" onclick="togglePlay()" aria-label="Воспроизвести">▶</button>
+              <button class="ctrl-btn" onclick="nextTrack()" aria-label="Следующий трек">⏭</button>
+              <button class="ctrl-btn like-btn" id="like-btn" onclick="likeTrack()" aria-label="Лайк">🌸</button>
+            </div>
+            <div class="progress-wrap" style="width:200px">
+              <div class="progress-track" id="prog-track" onclick="seekTrack(event)" tabindex="0" role="slider" aria-label="Прогресс воспроизведения" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="progress-fill" id="prog-fill"></div>
+              </div>
+              <div class="progress-times"><span id="t-cur">0:00</span><span id="t-dur">0:00</span></div>
+            </div>
+          </div>
+          <div class="track-list" role="listbox" aria-label="Список треков">
+            <div class="track-list-h">Плейлист — новые → популярные → хронология</div>
+            <div class="track-scroll" id="tlist"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="art-gallery" class="sec">
+      <div class="container">
+        <div class="sec-label reveal">Арт-галерея</div>
+        <h2 class="sec-h2 reveal">Безопасность в образах</h2>
+        <div class="gallery-grid reveal" id="gal-grid" role="list"></div>
+        <div style="text-align:center"><button class="btn btn-ghost" id="gal-more" onclick="loadMoreGallery()">Загрузить ещё</button></div>
+      </div>
+    </section>
+
+    <section id="video-sec">
+      <div class="container">
+        <div class="sec-label reveal">Видеораздел</div>
+        <h2 class="sec-h2 reveal" style="margin-bottom:var(--sp-8)">Кино о безопасности</h2>
+        <div class="video-layout">
+          <div>
+            <div class="video-player">
+              <div class="video-player-bg" aria-hidden="true">🎬</div>
+              <div class="video-play-overlay">
+                <button class="video-play-btn" id="vid-play" onclick="toggleVideo()" aria-label="Воспроизвести видео">▶</button>
+              </div>
+            </div>
+            <div class="video-meta">
+              <div class="video-title">Культура безопасности на производстве</div>
+              <div class="video-author">Александр Петров · 18:24 · 12 400 просмотров</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:var(--f-data);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--c-text-2);margin-bottom:var(--sp-4)">Рекомендуемые</div>
+            <div class="video-sidebar" id="vsidebar"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 4 — CASCADE GALLERY
+         Horizontal stacked slider (Swiper.js Creative effect)
+         Active card: full visibility + PiP preview
+         Adjacent cards: depth perspective + blur + darken
+         Navigation: large arrows on horizontal axis (left/right)
+         ══════════════════════════════════════════════════════ -->
+    <section id="cascade-gallery" aria-label="Каскадная фото-галерея">
+      <div class="cgal-header container">
+        <div class="sec-label reveal">Фото-опыт</div>
+        <h2 class="sec-h2 reveal">Истории в кадре</h2>
+        <p class="sec-sub reveal" style="max-width:480px">Листайте влево или вправо — каждая карточка открывает историю. Потяните или нажмите стрелку.</p>
+      </div>
+
+      <!-- Swiper wrapper -->
+      <div class="cgal-stage">
+
+        <!-- Nav arrows — centered on HORIZONTAL axis (left / right) -->
+        <button class="cgal-arrow cgal-arrow--left"  id="cgal-prev" aria-label="Предыдущая история">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="cgal-arrow cgal-arrow--right" id="cgal-next" aria-label="Следующая история">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
+        <!-- Slide counter — bottom centre -->
+        <div class="cgal-counter" id="cgal-counter" aria-live="polite">
+          <span id="cgal-cur">01</span><span class="cgal-sep">/</span><span id="cgal-total">5</span>
+        </div>
+
+        <!-- Dot pagination -->
+        <div class="cgal-dots" id="cgal-dots"></div>
+
+        <!-- Swiper container -->
+        <div class="swiper cgal-swiper" id="cgal-swiper">
+          <div class="swiper-wrapper" id="cgal-slides-wrap">
+            <!-- Slides injected by JS -->
+          </div>
+        </div>
+
+      </div><!-- /cgal-stage -->
+    </section>
+
+  </div>
+</div><!-- /p-art -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 3 — PROJECTS
+     ══════════════════════════════════════════════════════════════ -->
+<div class="page" id="p-projects">
+  <div class="page-inner-pad">
+    <section class="sec" style="background:radial-gradient(ellipse 60% 45% at 50% 0%,rgba(42,245,152,.04),transparent 60%)">
+      <div class="container">
+        <div class="sec-label reveal">Инициативы</div>
+        <h1 class="sec-h2 reveal" style="font-size:clamp(32px,5vw,56px);margin-bottom:var(--sp-3)">Проекты платформы</h1>
+        <p class="sec-sub reveal">Реальные инициативы реальных людей. Нажмите на карточку для деталей.</p>
+        <div class="g3" id="proj-grid" role="list"></div>
+        <div id="proj-detail"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 4 — NEWS  (Newspaper-style layout)
+     Structure:
+       .np-masthead      — газетная шапка с названием издания
+       .np-dateline      — строка с датой и рубриками
+       .np-body          — 4-колоночная модульная сетка
+         .np-col-left    — левая колонка (off-lead × 3)
+         .np-col-center  — центральная (splash × 1 + secondary × 2)
+         .np-col-right   — правая колонка (brief × 4 + featured)
+       .np-bottom-row    — нижняя строка карточек
+     ══════════════════════════════════════════════════════════════ -->
+<div class="page" id="p-news">
+
+  <!-- ── Masthead ── -->
+  <header class="np-masthead">
+    <div class="np-masthead-inner">
+      <div class="np-masthead-left">
+        <span class="np-edition">Выпуск № 47</span>
+        <span class="np-gutter-v"></span>
+        <span class="np-edition">Среда, 19 марта 2026</span>
+      </div>
+      <div class="np-masthead-title">
+        <div class="np-title-label">ЭкоСфера</div>
+        <div class="np-title-sub">ВЕСТНИК БЕЗОПАСНОСТИ</div>
+      </div>
+      <div class="np-masthead-right">
+        <span class="np-edition">12 400 подписчиков</span>
+        <span class="np-gutter-v"></span>
+        <span class="np-edition">94 страны</span>
+      </div>
+    </div>
+    <!-- Section tabs -->
+    <nav class="np-sections" aria-label="Разделы газеты">
+      <button class="np-sec-btn active" data-filter="all">Все</button>
+      <button class="np-sec-btn" data-filter="Экология">Экология</button>
+      <button class="np-sec-btn" data-filter="Энергетика">Энергетика</button>
+      <button class="np-sec-btn" data-filter="Наука">Наука</button>
+      <button class="np-sec-btn" data-filter="Города">Города</button>
+      <button class="np-sec-btn" data-filter="Проекты">Проекты</button>
+      <button class="np-sec-btn" data-filter="Культура">Культура</button>
+    </nav>
+  </header>
+
+  <!-- ── Main newspaper body ── -->
+  <main class="np-body" id="np-body" aria-label="Главная страница газеты">
+
+    <!-- LEFT COLUMN — Off-lead secondary stories -->
+    <aside class="np-col np-col-left" aria-label="Второстепенные новости">
+      <div id="np-left-cards"></div>
+    </aside>
+
+    <!-- CENTER COLUMN — Splash + secondary -->
+    <section class="np-col np-col-center" aria-label="Главная новость">
+      <!-- Splash / hero story -->
+      <article class="np-splash" id="np-splash" tabindex="0" aria-label="Главная новость">
+        <div class="np-splash-img-wrap">
+          <img id="np-splash-img" src="" alt="" loading="eager">
+          <div class="np-splash-img-overlay"></div>
+          <div class="np-splash-kicker" id="np-splash-kicker"></div>
+        </div>
+        <div class="np-splash-body">
+          <h2 class="np-splash-headline" id="np-splash-headline"></h2>
+          <p  class="np-splash-deck"     id="np-splash-deck"></p>
+          <div class="np-splash-byline"  id="np-splash-byline"></div>
+        </div>
+      </article>
+      <!-- Two secondary under splash -->
+      <div class="np-center-secondary" id="np-center-secondary"></div>
+    </section>
+
+    <!-- RIGHT COLUMN — Briefs + featured -->
+    <aside class="np-col np-col-right" aria-label="Краткие новости">
+      <div class="np-briefs-label">Кратко</div>
+      <div id="np-right-briefs"></div>
+      <div class="np-col-divider"></div>
+      <div id="np-right-feature"></div>
+    </aside>
+
+  </main>
+
+  <!-- ── Bottom row — more cards ── -->
+  <section class="np-bottom" aria-label="Больше новостей">
+    <div class="np-bottom-label">Ещё по теме</div>
+    <div class="np-bottom-grid" id="np-bottom-grid"></div>
+  </section>
+
+</div><!-- /p-news -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 5 — SUBMIT INITIATIVE
+     ══════════════════════════════════════════════════════════════ -->
+<div class="page" id="p-initiative">
+  <div class="initiative-hero">
+    <div class="sec-label both reveal" style="justify-content:center;margin-bottom:var(--sp-5)">Ваш голос</div>
+    <h1 class="initiative-title reveal">ВАШ ГОЛОС: ПРЕДЛОЖИТЕ <span>ИНИЦИАТИВУ</span></h1>
+    <p style="font-size:16px;color:var(--c-text-2);max-width:500px;margin:var(--sp-4) auto var(--sp-8);line-height:1.8" class="reveal">Каждая идея может изменить мир. Опишите проблему и решение — мы поможем воплотить.</p>
+    <div class="init-progress reveal" role="list">
+      <div class="init-step done"    id="is1" role="listitem"><div class="init-step-dot">✓</div><span>Основное</span></div>
+      <div class="init-step current" id="is2" role="listitem"><div class="init-step-dot">2</div><span>Детали</span></div>
+      <div class="init-step"         id="is3" role="listitem"><div class="init-step-dot">3</div><span>Медиа</span></div>
+      <div class="init-step"         id="is4" role="listitem"><div class="init-step-dot">4</div><span>Готово</span></div>
+    </div>
+  </div>
+  <div class="init-form-grid">
+    <div>
+      <div class="init-col-h">Как это работает</div>
+      <ul class="init-instructions">
+        <li data-n="1">Заполните все поля формы — они помогут нам правильно оценить инициативу</li>
+        <li data-n="2">Прикрепите медиа-материалы — фото, видео, документы для наглядности</li>
+        <li data-n="3">Укажите ресурсы и сроки — реалистичный план повышает шансы на реализацию</li>
+        <li data-n="4">После отправки модератор свяжется с вами в течение 3 рабочих дней</li>
+      </ul>
+      <div style="background:var(--c-green-dim);border:1px solid rgba(42,245,152,.2);border-radius:var(--r-lg);padding:var(--sp-5);margin-top:var(--sp-5)">
+        <div style="font-family:var(--f-data);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--c-green);margin-bottom:var(--sp-3)">📊 Статистика</div>
+        <div style="font-size:13px;color:var(--c-text-2);line-height:1.8">847 инициатив подано<br>312 реализовано<br>94 страны охвачено</div>
+      </div>
+    </div>
+    <div>
+      <div class="init-col-h">Заполните форму</div>
+      <div class="form-group"><label class="form-label" for="init-name">Название инициативы *</label><input class="form-input" id="init-name" type="text" placeholder="Краткое и ёмкое название" autocomplete="off"></div>
+      <div class="form-group"><label class="form-label" for="init-cat">Категория *</label>
+        <select class="form-input" id="init-cat"><option value="">Выберите категорию</option><option>Экология</option><option>Охрана труда</option><option>Энергетика</option><option>Образование</option><option>Здоровье</option><option>Культура</option></select>
+      </div>
+      <div class="form-group"><label class="form-label" for="init-short">Краткое описание *</label><textarea class="form-input" id="init-short" rows="3" placeholder="В 2-3 предложениях опишите суть инициативы"></textarea></div>
+      <div class="form-group"><label class="form-label" for="init-problem">Описание проблемы *</label><textarea class="form-input" id="init-problem" rows="4" placeholder="Какую конкретную проблему решает инициатива?"></textarea></div>
+      <div class="form-group"><label class="form-label" for="init-solution">Предлагаемое решение *</label><textarea class="form-input" id="init-solution" rows="4" placeholder="Как вы планируете решить проблему?"></textarea></div>
+      <div class="form-group"><label class="form-label" for="init-result">Ожидаемый результат</label><textarea class="form-input" id="init-result" rows="3" placeholder="Что изменится после реализации?"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">
+        <div class="form-group"><label class="form-label" for="init-loc">Локация</label><input class="form-input" id="init-loc" type="text" placeholder="Город / регион"></div>
+        <div class="form-group"><label class="form-label" for="init-dur">Сроки</label><input class="form-input" id="init-dur" type="text" placeholder="Напр.: 6 месяцев"></div>
+      </div>
+      <div class="form-group"><label class="form-label" for="init-res">Необходимые ресурсы</label><textarea class="form-input" id="init-res" rows="3" placeholder="Финансирование, волонтёры, оборудование..."></textarea></div>
+      <div class="form-group"><label class="form-label" for="init-link">Ссылки и источники</label><input class="form-input" id="init-link" type="url" placeholder="https://"></div>
+      <div class="form-group"><label class="form-label" for="init-author">Ваше имя *</label><input class="form-input" id="init-author" type="text" placeholder="Имя и фамилия" autocomplete="name"></div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="submitInitiative()">Отправить инициативу →</button>
+    </div>
+    <div class="upload-col">
+      <div class="init-col-h">Медиа-материалы</div>
+      <div class="upload-zone" onclick="triggerUpload('file-main')" id="drop-zone" role="button" tabindex="0" aria-label="Загрузить файлы перетаскиванием или нажатием">
+        <div class="upload-icon" aria-hidden="true">📁</div>
+        <div class="upload-text">Перетащите файлы сюда</div>
+        <div class="upload-sub">или нажмите для выбора</div>
+        <input type="file" id="file-main" multiple accept="image/*,video/*,.pdf" style="display:none" onchange="handleFiles(this)">
+        <div style="margin-top:var(--sp-4)"><span class="btn btn-ghost btn-sm">Выбрать файлы</span></div>
+      </div>
+      <div id="file-preview" style="margin-top:var(--sp-4);display:flex;flex-wrap:wrap;gap:var(--sp-2)" aria-live="polite"></div>
+      <div style="margin-top:var(--sp-5);font-size:12px;color:var(--c-text-3);line-height:1.7">Допустимые форматы: JPG, PNG, MP4, PDF<br>Максимальный размер: 50 МБ</div>
+    </div>
+  </div>
+</div><!-- /p-initiative -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 6 — REGISTRATION
+     ══════════════════════════════════════════════════════════════ -->
+<div class="page" id="p-register">
+  <div id="reg-inner" class="reg-inner-grid page-inner-pad">
+    <div class="reg-visual">
+      <div class="reg-visual-deco" aria-hidden="true">Б</div>
+      <div class="reg-visual-tag">Сообщество безопасности</div>
+      <h2 class="reg-visual-h">СТАНЬТЕ ЧАСТЬЮ<br>СООБЩЕСТВА</h2>
+      <p class="reg-visual-body">Присоединяйтесь к 12 400+ экспертам, волонтёрам и лидерам, которые строят культуру безопасности будущего.</p>
+      <div class="reg-visual-stats">
+        <div><span class="reg-stat-val">12K+</span><span class="reg-stat-label">Участников</span></div>
+        <div><span class="reg-stat-val">94</span><span class="reg-stat-label">Страны</span></div>
+        <div><span class="reg-stat-val">847</span><span class="reg-stat-label">Проектов</span></div>
+      </div>
+    </div>
+    <div class="reg-form-wrap">
+      <div class="reg-form-inner">
+        <h1 class="reg-form-h">Создать аккаунт</h1>
+        <p class="reg-form-sub">Уже есть аккаунт? <a href="#" style="color:var(--c-green)">Войти</a></p>
+        <div class="form-group"><label class="form-label" for="reg-name">Имя и фамилия *</label><input class="form-input" id="reg-name" type="text" placeholder="Александр Петров" autocomplete="name"></div>
+        <div class="form-group"><label class="form-label" for="reg-email">Email *</label><input class="form-input" id="reg-email" type="email" placeholder="alex@example.com" autocomplete="email"></div>
+        <div class="form-group"><label class="form-label" for="pw-input">Пароль *</label>
+          <div style="position:relative">
+            <input class="form-input" type="password" id="pw-input" placeholder="Минимум 8 символов" style="padding-right:44px" autocomplete="new-password">
+            <button type="button" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--c-text-3);font-size:16px" aria-label="Показать/скрыть пароль">👁</button>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:6px" role="meter" aria-label="Надёжность пароля">
+            <div style="height:3px;flex:1;border-radius:2px;background:var(--c-border)" id="pw-s1"></div>
+            <div style="height:3px;flex:1;border-radius:2px;background:var(--c-border)" id="pw-s2"></div>
+            <div style="height:3px;flex:1;border-radius:2px;background:var(--c-border)" id="pw-s3"></div>
+            <div style="height:3px;flex:1;border-radius:2px;background:var(--c-border)" id="pw-s4"></div>
+          </div>
+        </div>
+        <label class="checkbox-wrap"><input type="checkbox" checked id="digest-cb"><span class="checkbox-label">Подписаться на еженедельный дайджест с лучшими материалами платформы</span></label>
+        <button type="button" class="btn btn-primary btn-full btn-lg" style="margin-top:var(--sp-6)" onclick="registerUser()">Создать аккаунт →</button>
+        <p class="form-hint">Нажимая кнопку, вы соглашаетесь с <a href="#">Условиями использования</a> и <a href="#">Политикой конфиденциальности</a>.</p>
+      </div>
+    </div>
+  </div>
+</div><!-- /p-register -->
+
+<!-- GALLERY LIGHTBOX -->
+<div id="gallery-lb" role="dialog" aria-modal="true" aria-label="Просмотр изображения" onclick="closeLb()">
+  <button id="gallery-lb-close" onclick="closeLb()" aria-label="Закрыть просмотр">✕</button>
+  <img id="lb-img" src="" alt="Увеличенное изображение">
+</div>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>
