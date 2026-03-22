@@ -1607,7 +1607,12 @@ body {
 .stagger-item.stagger-item--in {
   opacity: 1;
   transform: translateY(0);
+}
+.sec-h2.stagger-item.stagger-item--in{
   color: var(--c-surface);
+}
+.sec-sub.stagger-item.stagger-item--in{
+  color: var(--c-surface-2);
 }
 
 /* Keep old .reveal working for backwards-compat elements */
