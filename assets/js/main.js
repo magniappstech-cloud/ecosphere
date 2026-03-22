@@ -5,15 +5,6 @@
 
 'use strict';
 
-(function() {
-  var root = document.documentElement;
-  function syncMobileClass() {
-    root.classList.toggle('is-mobile', window.innerWidth <= 768);
-  }
-  syncMobileClass();
-  window.addEventListener('resize', syncMobileClass, { passive: true });
-})();
-
 /* ══════════════════════════════════════════════════════════════════════
    1. SPA PAGE SYSTEM
    ══════════════════════════════════════════════════════════════════════ */
@@ -55,7 +46,7 @@ function showPage(id) {
     a.classList.toggle('active', a.id === 'nl-' + pageKey);
   });
 
-  window.scrollTo({ top: 0, behavior: 'auto' });
+  window.scrollTo({ top: 0, behavior: 'instant' });
   initReveal();
   /* Re-init stagger for newly visible sections */
   if (window._initStagger) window._initStagger();
@@ -66,140 +57,6 @@ function showPage(id) {
 window.showPage = showPage;
 window.goHome   = function() { showPage('p-home'); };
 
-/* ══════════════════════════════════════════════════════════════════════
-   2. WORLD BACKGROUND — animated canvas parallax
-   A single fixed canvas renders soft gradient orbs.
-   All page content layers slide on top — creating depth.
-   ══════════════════════════════════════════════════════════════════════ */
-(function() {
-  var canvas = document.getElementById('world-canvas');
-  if (!canvas) return;
-  var ctx = canvas.getContext('2d');
-  var reduceMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
-  var smallScreen = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
-  var isPaused = false;
-  var rafId = 0;
-
-  /* Orb definitions — colour, size, speed, initial position */
-  var orbs = [
-    { x: 0.72, y: 0.18, r: 0.48, color: '42,245,152',  alpha: 0.055, vx:  0.00012, vy:  0.00008 },
-    { x: 0.12, y: 0.75, r: 0.40, color: '255,107,107', alpha: 0.040, vx: -0.00009, vy: -0.00006 },
-    { x: 0.45, y: 0.50, r: 0.30, color: '77,168,255',  alpha: 0.032, vx:  0.00007, vy:  0.00010 },
-    { x: 0.85, y: 0.85, r: 0.25, color: '180,42,245',  alpha: 0.028, vx: -0.00005, vy:  0.00007 },
-  ];
-
-  /* Scroll offset for parallax — each orb layer moves at different rate */
-  var scrollY  = 0;
-  var targetSY = 0;
-  var W = 0, H = 0;
-
-  function resize() {
-    if (isPaused) return;
-    var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width = Math.round(W * dpr);
-    canvas.height = Math.round(H * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-
-  function shouldPause() {
-    return (reduceMotion && reduceMotion.matches) || (smallScreen && smallScreen.matches);
-  }
-
-  function applyCanvasMode() {
-    isPaused = shouldPause();
-    canvas.style.display = isPaused ? 'none' : 'block';
-    if (isPaused) {
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = 0;
-      return;
-    }
-    resize();
-    if (!rafId) rafId = requestAnimationFrame(draw);
-  }
-
-  applyCanvasMode();
-  window.addEventListener('resize', resize, { passive: true });
-  if (reduceMotion && reduceMotion.addEventListener) reduceMotion.addEventListener('change', applyCanvasMode);
-  if (smallScreen && smallScreen.addEventListener) smallScreen.addEventListener('change', applyCanvasMode);
-
-  window.addEventListener('scroll', function() {
-    if (isPaused) return;
-    targetSY = window.scrollY;
-  }, { passive: true });
-
-  function draw(ts) {
-    if (isPaused) {
-      rafId = 0;
-      return;
-    }
-    rafId = requestAnimationFrame(draw);
-
-    /* Smooth parallax scroll interpolation */
-    scrollY += (targetSY - scrollY) * 0.06;
-
-    ctx.clearRect(0, 0, W, H);
-
-    /* Deep base gradient — the "sky" behind everything */
-    var base = ctx.createLinearGradient(0, 0, 0, H);
-    base.addColorStop(0,   '#070E1A');
-    base.addColorStop(0.5, '#0a1828');
-    base.addColorStop(1,   '#06111e');
-    ctx.fillStyle = base;
-    ctx.fillRect(0, 0, W, H);
-
-    /* Grid lines — faint green lattice */
-    ctx.save();
-    ctx.strokeStyle = 'rgba(42,245,152,0.022)';
-    ctx.lineWidth = 1;
-    var grid = 72;
-    for (var gx = 0; gx < W; gx += grid) {
-      ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
-    }
-    for (var gy = 0; gy < H; gy += grid) {
-      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
-    }
-    ctx.restore();
-
-    /* Animated gradient orbs — each at a different parallax depth */
-    orbs.forEach(function(o, i) {
-      /* Gentle drift */
-      o.x += o.vx;
-      o.y += o.vy;
-      if (o.x < -0.2) o.x = 1.2;
-      if (o.x >  1.2) o.x = -0.2;
-      if (o.y < -0.2) o.y = 1.2;
-      if (o.y >  1.2) o.y = -0.2;
-
-      /* Parallax depth — deeper orbs move less on scroll */
-      var depth     = 0.05 + i * 0.04;
-      var parallaxY = scrollY * depth;
-
-      var cx  = o.x * W;
-      var cy  = o.y * H - parallaxY;
-      var rad = o.r * Math.max(W, H);
-
-      var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-      grad.addColorStop(0,   'rgba(' + o.color + ',' + o.alpha + ')');
-      grad.addColorStop(0.5, 'rgba(' + o.color + ',' + (o.alpha * 0.4) + ')');
-      grad.addColorStop(1,   'rgba(' + o.color + ',0)');
-
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, rad, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    /* Vignette — darkens edges so content pops */
-    var vig = ctx.createRadialGradient(W/2, H/2, H*0.2, W/2, H/2, H*0.9);
-    vig.addColorStop(0, 'rgba(0,0,0,0)');
-    vig.addColorStop(1, 'rgba(0,0,0,0.55)');
-    ctx.fillStyle = vig;
-    ctx.fillRect(0, 0, W, H);
-  }
-
-})();
 
 /* ══════════════════════════════════════════════════════════════════════
    3. STICKY NAV + MASONRY COLLAPSE SCROLL TRANSITION
@@ -209,27 +66,10 @@ var masonryEl   = document.getElementById('masonry');
 var heroBgEl    = document.getElementById('hero-bg');
 var heroTopbar  = document.querySelector('.hero-topbar');
 var progressBar = document.getElementById('scroll-progress');
-var mediaReduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
-var mediaMobile = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
-var lastScrollY = window.scrollY || 0;
-var scrollTicking = false;
 
-/* Cache masonry blocks once for perf */
-var mbBlocks = masonryEl ? Array.from(masonryEl.querySelectorAll('.mb')) : [];
-
-/* Target positions for each block's "collapse" — they converge to nav centre */
-var mbTargets = [
-  { tx: 0,   ty: -1 },   /* mb-1: main block — flies straight up */
-  { tx: 0.4, ty: -1 },   /* mb-2 */
-  { tx: 0.2, ty: -1 },   /* mb-3 */
-  { tx: 0.5, ty: -1 },   /* mb-4 */
-  { tx:-0.2, ty: -1 },   /* mb-5 */
-  { tx: 0.3, ty: -1 },   /* mb-6 */
-];
 
 function onScroll() {
-  scrollTicking = false;
-  var y = lastScrollY;
+  var y = window.scrollY;
 
   /* ── Scroll progress bar ── */
   if (progressBar) {
@@ -244,69 +84,33 @@ function onScroll() {
   var homeActive = document.getElementById('p-home').classList.contains('active');
   if (!homeActive) return;
 
-  var hero = document.getElementById('hero');
-  if (!hero) return;
-  var heroH = Math.max(hero.offsetHeight, 1);
-
-  /* progress 0→1 over the hero scroll distance */
-  var p = Math.min(y / heroH, 1);
-
-  /* Phase thresholds */
-  var FADE_START  = 0.15;  /* masonry starts fading at 15% */
-  var FADE_END    = 0.60;  /* fully gone at 60% */
-  var TOPBAR_FADE = 0.35;  /* hero topbar starts hiding at 35% */
-
-  /* ── Masonry global fade + scale ── */
-  if (masonryEl) {
-    var masonryP = p < FADE_START
-      ? 1
-      : Math.max(0, 1 - (p - FADE_START) / (FADE_END - FADE_START));
-    masonryEl.style.opacity   = masonryP;
-    masonryEl.style.transform = 'scale(' + (1 - p * 0.04) + ')';
-  }
-
-  /* ── Each block flies toward sticky nav — staggered collapse ── */
-  mbBlocks.forEach(function(mb, i) {
-    if (p < FADE_START) {
-      mb.style.transform = '';
-      mb.style.opacity   = '';
-      return;
-    }
-    var blockP  = Math.min((p - FADE_START) / (FADE_END - FADE_START), 1);
-    var target  = mbTargets[i] || { tx: 0, ty: -1 };
-    /* stagger — later blocks lag slightly */
-    var lag     = Math.max(0, blockP - i * 0.06);
-    var eased   = lag < 0 ? 0 : 1 - Math.pow(1 - lag, 2);
-    var tx      = target.tx * 80 * eased;
-    var ty      = target.ty * 120 * eased;
-    var sc      = 1 - eased * 0.18;
-    mb.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + sc + ')';
-    mb.style.opacity   = 1 - eased;
-  });
-
-  /* ── Hero topbar fades out as masonry collapses ── */
-  if (heroTopbar) {
-    heroTopbar.classList.toggle('hero-topbar--hidden', p > TOPBAR_FADE);
-  }
-
   /* ── Parallax hero background ── */
-  if (heroBgEl && !(mediaReduce && mediaReduce.matches) && !(mediaMobile && mediaMobile.matches)) {
-    heroBgEl.style.transform = 'translateY(' + y * 0.28 + 'px)';
-  } else if (heroBgEl) {
-    heroBgEl.style.transform = '';
+  if (heroBgEl) {
+    heroBgEl.style.transform = 'translateY(' + y * 0.20 + 'px)';
   }
 }
 
-function requestScrollUpdate() {
-  lastScrollY = window.scrollY || 0;
-  if (scrollTicking) return;
-  scrollTicking = true;
-  requestAnimationFrame(onScroll);
-}
-
-window.addEventListener('scroll', requestScrollUpdate, { passive: true });
+window.addEventListener('scroll', onScroll, { passive: true });
 /* Run once on load */
 onScroll();
+
+/* GSAP enhancement for buttery smooth masonry collapse (if available) */
+function setupGSAP() {
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+  gsap.registerPlugin(ScrollTrigger);
+  /* GSAP handles the masonry transform for smoother 60fps interpolation */
+  ScrollTrigger.create({
+    trigger: '#hero',
+    start: 'top top',
+    end: 'bottom top',
+    onUpdate: function(s) {
+      /* Delegate to our onScroll for consistency */
+      onScroll();
+    },
+    scrub: true
+  });
+}
+setTimeout(setupGSAP, 120);
 
 /* ══════════════════════════════════════════════════════════════════════
    4. STAGGER FADE-IN-UP SYSTEM
@@ -380,6 +184,11 @@ onScroll();
 /* ══════════════════════════════════════════════════════════════════════
    3. MOBILE MENU — FIX: закрытие по overlay и Escape
    ══════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════
+   3. MOBILE MENU
+   Overlay управляется CSS через body.mob-open.
+   Закрытие: кнопка ✕, клик по overlay, Escape, клик по ссылке меню.
+   ══════════════════════════════════════════════════════════════════════ */
 var burger    = document.getElementById('burger');
 var mobMenu   = document.getElementById('mob-menu');
 var mobClose  = document.getElementById('mob-close');
@@ -390,43 +199,57 @@ function openMob() {
   mobMenu.classList.add('open');
   document.body.style.overflow = 'hidden';
   document.body.classList.add('mob-open');
-  if (burger) burger.setAttribute('aria-expanded', 'true');
-  if (mobOverlay) mobOverlay.style.display = 'block';
-  /* Фокус на первый элемент меню */
-  var firstLink = mobMenu.querySelector('a');
-  if (firstLink) firstLink.focus();
-}
-
-function toggleMob() {
-  if (!mobMenu) return;
-  if (mobMenu.classList.contains('open')) {
-    window.closeMob();
-    return;
+  if (burger) {
+    burger.setAttribute('aria-expanded', 'true');
   }
-  openMob();
+  /* Фокус на первый элемент меню для a11y */
+  var firstLink = mobMenu.querySelector('a, button');
+  if (firstLink) setTimeout(function() { firstLink.focus(); }, 50);
 }
 
 window.closeMob = function() {
   if (!mobMenu) return;
   mobMenu.classList.remove('open');
-  document.body.style.overflow = '';
+  document.body.style.overflow  = '';
   document.body.classList.remove('mob-open');
   if (burger) {
     burger.setAttribute('aria-expanded', 'false');
+    /* Возвращаем фокус на кнопку-триггер */
     burger.focus();
   }
-  if (mobOverlay) mobOverlay.style.display = 'none';
 };
 
-if (burger)     burger.addEventListener('click', toggleMob);
+if (burger)     burger.addEventListener('click', openMob);
 if (mobClose)   mobClose.addEventListener('click', window.closeMob);
-if (mobOverlay) mobOverlay.addEventListener('click', window.closeMob);
 
+/* Клик / тап по overlay — закрывает меню */
+if (mobOverlay) {
+  mobOverlay.addEventListener('click',      window.closeMob);
+  mobOverlay.addEventListener('touchstart', function(e) {
+    /* preventDefault блокирует ghost click на iOS */
+    e.preventDefault();
+    window.closeMob();
+  }, { passive: false });
+}
+
+/* Escape */
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    window.closeMob();
+    if (document.body.classList.contains('mob-open')) {
+      window.closeMob();
+      return;
+    }
     var lb = document.getElementById('gallery-lb');
     if (lb && lb.classList.contains('show')) window.closeLb();
+  }
+});
+
+/* Клик вне меню на весь document (fallback для странных браузеров) */
+document.addEventListener('click', function(e) {
+  if (!document.body.classList.contains('mob-open')) return;
+  /* Если клик не внутри #mob-menu и не на #burger — закрыть */
+  if (mobMenu && !mobMenu.contains(e.target) && e.target !== burger && !burger.contains(e.target)) {
+    window.closeMob();
   }
 });
 
@@ -465,9 +288,17 @@ function initReveal() {
 initReveal();
 
 /* ══════════════════════════════════════════════════════════════════════
-   6. ANIMATED COUNTERS
+   6. ANIMATED COUNTERS + PUBLIC STATS FROM API
+   Данные загружаются с /stats/public:
+     - users:     сумма зарегистрированных пользователей
+     - projects:  одобренные администратором проекты (status=ACTIVE|COMPLETED)
+     - articles:  опубликованные статьи (status=PUBLISHED)
+     - countries: уникальные страны в одобренных проектах (count > 0)
    ══════════════════════════════════════════════════════════════════════ */
 (function() {
+  var API_BASE = window.ECOSFERA_API || 'http://localhost:4000';
+
+  /* easeOutCubic анимация счётчика */
   function animateCounter(el, target, suffix, duration) {
     var startTime = null;
     function step(ts) {
@@ -481,88 +312,235 @@ initReveal();
     requestAnimationFrame(step);
   }
 
+  /* Применяем данные из API к DOM — главные счётчики + вторичные элементы */
+  function applyStats(data) {
+    var map = [
+      { elId: 'cnt1', val: data.users,     suffix: '' },
+      { elId: 'cnt2', val: data.projects,  suffix: '' },
+      { elId: 'cnt3', val: data.articles,  suffix: '' },
+      { elId: 'cnt4', val: data.countries, suffix: '' },
+    ];
+    map.forEach(function(item, i) {
+      var el = document.getElementById(item.elId);
+      if (!el || el.dataset.done) return;
+      el.dataset.done = '1';
+      setTimeout(function() {
+        animateCounter(el, item.val, item.suffix, 1800);
+      }, i * 120);
+    });
+
+    /* Вторичные элементы — обновляем сразу без анимации */
+    var np = document.getElementById('np-countries-stat');
+    if (np) np.textContent = data.countries + ' ' + (data.countries === 1 ? 'страна' : data.countries < 5 ? 'страны' : 'стран');
+
+    var ip = document.getElementById('init-projects-stat');
+    if (ip) ip.textContent = data.projects;
+    var ic = document.getElementById('init-countries-stat');
+    if (ic) ic.textContent = data.countries;
+
+    var ru = document.getElementById('reg-stat-users');
+    if (ru) ru.textContent = data.users > 1000
+      ? Math.round(data.users / 1000) + 'K+'
+      : String(data.users);
+    var rc = document.getElementById('reg-stat-countries');
+    if (rc) rc.textContent = String(data.countries);
+    var rp = document.getElementById('reg-stat-projects');
+    if (rp) rp.textContent = String(data.projects);
+  }
+
+  /* Запрос к API — с fallback на заглушку если сервер недоступен */
+  function loadStats() {
+    fetch(API_BASE + '/stats/public', { cache: 'no-cache' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        window._publicStats = data;  /* сохраняем глобально для карты и лидеров */
+        applyStats(data);
+        buildMapPins(data.projectsByCountry || []);
+        updateMapLabel(data.countries, data.projects);
+      })
+      .catch(function() {
+        /* Fallback: показываем прочерки если API недоступен */
+        ['cnt1','cnt2','cnt3','cnt4'].forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.textContent = '—';
+        });
+        updateMapLabel(0, 0);
+      });
+  }
+
+  /* IntersectionObserver: запускаем fetch когда секция metrics входит в viewport */
+  var metricsLoaded = false;
   var metricsObs = new IntersectionObserver(function(entries) {
     entries.forEach(function(entry) {
-      if (!entry.isIntersecting) return;
-      entry.target.querySelectorAll('[data-target]').forEach(function(item, i) {
-        var valEl = item.querySelector('.metric-val');
-        if (!valEl || valEl.dataset.done) return;
-        valEl.dataset.done = '1';
-        setTimeout(function() {
-          animateCounter(valEl, parseInt(item.dataset.target), item.dataset.suffix || '', 1800);
-        }, i * 120);
-      });
+      if (!entry.isIntersecting || metricsLoaded) return;
+      metricsLoaded = true;
+      loadStats();
       metricsObs.unobserve(entry.target);
     });
-  }, { threshold: 0.3 });
+  }, { threshold: 0.2 });
 
   var m = document.getElementById('metrics');
   if (m) metricsObs.observe(m);
+
+  /* Также загружаем при загрузке главной страницы без скролла */
+  setTimeout(loadStats, 400);
 })();
 
 /* ══════════════════════════════════════════════════════════════════════
-   7. RADAR TOOLTIP — FIX: Touch support
+   7. MAP PINS + TOOLTIP
+   buildMapPins(list) — принимает массив { country, count, status }
+   из /stats/public и строит пины. Страна попадает на карту только
+   если count > 0. Тултип показывает название страны и число проектов.
+   Позиции захардкожены по ключу country (lat/lng → % внутри блока).
    ══════════════════════════════════════════════════════════════════════ */
-(function() {
-  var tip = document.getElementById('r-tip');
-  if (!tip) return;
 
-  document.querySelectorAll('.radar-dot').forEach(function(dot) {
-    function showTip(x, y) {
-      tip.textContent = (dot.dataset.ok === '1' ? '✅ ' : '🔴 ') + dot.dataset.city;
-      tip.classList.add('show');
-      var pr = dot.closest('.radar-wrap').getBoundingClientRect();
-      tip.style.left = (x - pr.left + 12) + 'px';
-      tip.style.top  = (y - pr.top  - 36) + 'px';
+/* Словарь страна → примерная позиция на SVG-блоке (top%, left%) */
+var COUNTRY_POSITIONS = {
+  'Россия':        { top: 30, left: 52 },
+  'Казахстан':     { top: 38, left: 58 },
+  'Беларусь':      { top: 26, left: 48 },
+  'Украина':       { top: 28, left: 46 },
+  'Германия':      { top: 24, left: 40 },
+  'Франция':       { top: 28, left: 37 },
+  'США':           { top: 32, left: 14 },
+  'Китай':         { top: 34, left: 68 },
+  'Индия':         { top: 40, left: 63 },
+  'Бразилия':      { top: 56, left: 28 },
+  'Великобритания':{ top: 22, left: 36 },
+  'Канада':        { top: 22, left: 16 },
+  'Австралия':     { top: 62, left: 76 },
+  'Япония':        { top: 32, left: 78 },
+  'ЮАР':           { top: 64, left: 46 },
+  'Аргентина':     { top: 66, left: 26 },
+  'Мексика':       { top: 40, left: 16 },
+  'Нигерия':       { top: 48, left: 42 },
+  'Египет':        { top: 36, left: 46 },
+  'Турция':        { top: 30, left: 50 },
+};
+
+/* Создаёт tooltip-элемент один раз */
+var _mapTip = null;
+function getMapTip() {
+  if (_mapTip) return _mapTip;
+  _mapTip = document.createElement('div');
+  _mapTip.className = 'map-tooltip';
+  _mapTip.setAttribute('aria-hidden', 'true');
+  _mapTip.style.cssText = [
+    'position:absolute;pointer-events:none;z-index:10',
+    'background:rgba(11,31,58,.95);border:1px solid rgba(42,245,152,.3)',
+    'color:#e2e8f0;font-size:12px;font-family:var(--f-data,monospace)',
+    'padding:5px 10px;border-radius:6px;white-space:nowrap',
+    'opacity:0;transition:opacity .15s;transform:translateX(-50%)',
+  ].join(';');
+  var container = document.querySelector('.map-placeholder');
+  if (container) container.style.position = 'relative';
+  if (container) container.appendChild(_mapTip);
+  return _mapTip;
+}
+
+/* Присоединяет tooltip-события к пину */
+function attachPinEvents(pin, country, count, isActive) {
+  var tip = getMapTip();
+
+  function show(x, y) {
+    var pr = pin.closest('.map-placeholder').getBoundingClientRect();
+    tip.textContent = (isActive ? '🔴 ' : '✅ ') + country + ' · ' + count + ' проект' + (count === 1 ? '' : count < 5 ? 'а' : 'ов');
+    tip.style.left    = (x - pr.left) + 'px';
+    tip.style.top     = (y - pr.top - 40) + 'px';
+    tip.style.opacity = '1';
+  }
+  function hide() { tip.style.opacity = '0'; }
+
+  pin.addEventListener('mouseenter', function(e) { show(e.clientX, e.clientY); });
+  pin.addEventListener('mousemove',  function(e) { show(e.clientX, e.clientY); });
+  pin.addEventListener('mouseleave', hide);
+  pin.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    var t = e.touches[0];
+    show(t.clientX, t.clientY);
+    setTimeout(hide, 2000);
+  }, { passive: false });
+  pin.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      var r = pin.getBoundingClientRect();
+      var pr = pin.closest('.map-placeholder').getBoundingClientRect();
+      show(r.left + r.width / 2 - pr.left + pr.left, r.top - pr.top + pr.top);
+      setTimeout(hide, 2000);
+    }
+  });
+}
+
+/* Публичная функция: вызывается из модуля счётчиков после загрузки API */
+window.buildMapPins = function(list) {
+  var container = document.getElementById('map-pins-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  /* Фильтр: только страны с count > 0 */
+  var active = (list || []).filter(function(item) { return item.count > 0; });
+
+  active.forEach(function(item) {
+    var pos = COUNTRY_POSITIONS[item.country];
+    /* Если страна не в словаре — генерируем случайную позицию (fallback) */
+    if (!pos) {
+      pos = { top: 20 + Math.random() * 50, left: 10 + Math.random() * 75 };
     }
 
-    dot.addEventListener('mouseenter', function(e) { showTip(e.clientX, e.clientY); });
-    dot.addEventListener('mousemove',  function(e) { showTip(e.clientX, e.clientY); });
-    dot.addEventListener('mouseleave', function()  { tip.classList.remove('show'); });
+    var pin = document.createElement('div');
+    var isActive = item.status === 'ACTIVE';
+    pin.className = 'map-pin ' + (isActive ? 'map-pin--active' : 'map-pin--done');
+    pin.style.top  = pos.top  + '%';
+    pin.style.left = pos.left + '%';
+    pin.setAttribute('data-city', item.country);
+    pin.setAttribute('tabindex', '0');
+    pin.setAttribute('role', 'button');
+    pin.setAttribute('aria-label', item.country + ': ' + item.count + ' проектов');
 
-    /* Touch */
-    dot.addEventListener('touchstart', function(e) {
-      e.preventDefault();
-      var t = e.touches[0];
-      showTip(t.clientX, t.clientY);
-      setTimeout(function() { tip.classList.remove('show'); }, 2000);
-    }, { passive: false });
-
-    /* Keyboard */
-    dot.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') {
-        var r = dot.getBoundingClientRect();
-        showTip(r.left + r.width / 2, r.top + r.height / 2);
-        setTimeout(function() { tip.classList.remove('show'); }, 2000);
-      }
-    });
+    attachPinEvents(pin, item.country, item.count, isActive);
+    container.appendChild(pin);
   });
-})();
+};
+
+/* Обновляет подпись под картой */
+window.updateMapLabel = function(countries, projects) {
+  var el = document.getElementById('map-stats-label');
+  if (!el) return;
+  el.textContent = (countries || 0) + ' ' + (countries === 1 ? 'страна' : countries < 5 ? 'страны' : 'стран') +
+                   ' · ' + (projects || 0) + ' проектов';
+};
 
 /* ══════════════════════════════════════════════════════════════════════
-   8. LEADERS CAROUSEL — FIX: корректный расчёт ширины карточки
+   8. LEADERS CAROUSEL — API-driven
+   Источник: GET /users/leaders
+   Каждый лидер это пользователь с role=LEADER (назначает только ADMIN).
+   Логика клика: если у лидера есть статьи (articlesCount > 0) →
+   переходим на страницу Статьи с фильтром по автору.
+   Если статей нет — карточка неактивна (нет cursor-pointer, нет перехода).
+   Dots и carousel строятся динамически после загрузки данных.
    ══════════════════════════════════════════════════════════════════════ */
 (function() {
-  var track   = document.getElementById('ltck');
-  var dots    = document.querySelectorAll('.ldot');
-  var current = 0;
+  var API_BASE = window.ECOSFERA_API || 'http://localhost:4000';
+  var track    = document.getElementById('ltck');
+  var dotsWrap = document.getElementById('leader-dots');
+  var current  = 0;
   var timer;
+  var dotsNodeList = [];
 
-  /* FIX: Считаем ширину включая gap через CSS gap (24px) */
+  /* Расчёт ширины карточки включая gap */
   function cardWidth() {
     if (!track) return 300;
     var card = track.querySelector('.leader-card');
     if (!card) return 300;
-    /* getBoundingClientRect() — реальная ширина после рендера */
-    var style = window.getComputedStyle(track);
-    var gap   = parseFloat(style.gap) || 24;
+    var gap = parseFloat(window.getComputedStyle(track).gap) || 24;
     return card.getBoundingClientRect().width + gap;
   }
 
+  /* Прокрутка к слайду i */
   window.gL = function(i) {
-    current = Math.max(0, Math.min(i, dots.length - 1));
+    if (!dotsNodeList.length) return;
+    current = Math.max(0, Math.min(i, dotsNodeList.length - 1));
     if (track) track.style.transform = 'translateX(-' + current * cardWidth() + 'px)';
-    dots.forEach(function(d, j) {
+    dotsNodeList.forEach(function(d, j) {
       d.classList.toggle('on', j === current);
       d.setAttribute('aria-selected', j === current ? 'true' : 'false');
     });
@@ -570,45 +548,199 @@ initReveal();
     timer = setInterval(next, 4000);
   };
 
-  function next() { window.gL((current + 1) % dots.length); }
+  function next() { window.gL((current + 1) % Math.max(1, dotsNodeList.length)); }
 
-  if (track) {
-    track.addEventListener('mouseenter', function() { clearInterval(timer); });
-    track.addEventListener('mouseleave', function() { timer = setInterval(next, 4000); });
-
-    /* Touch swipe */
-    var startX = 0;
-    track.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
-    track.addEventListener('touchend', function(e) {
-      var dx = e.changedTouches[0].clientX - startX;
-      if (Math.abs(dx) > 50) window.gL(dx < 0 ? current + 1 : current - 1);
-    }, { passive: true });
+  /* Построить dots по количеству лидеров */
+  function buildDots(count) {
+    if (!dotsWrap) return;
+    dotsWrap.innerHTML = '';
+    dotsNodeList = [];
+    /* Показываем один dot на каждую «страницу» из 3 карточек */
+    var pages = Math.ceil(count / 3) || 1;
+    for (var p = 0; p < pages; p++) {
+      var btn = document.createElement('button');
+      btn.className = 'ldot' + (p === 0 ? ' on' : '');
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', p === 0 ? 'true' : 'false');
+      btn.setAttribute('aria-label', 'Слайд ' + (p + 1));
+      /* Замыкание для индекса */
+      (function(idx) {
+        btn.onclick = function() { window.gL(idx); };
+      })(p);
+      dotsWrap.appendChild(btn);
+      dotsNodeList.push(btn);
+    }
   }
 
-  /* Запускаем после рендера */
-  setTimeout(function() { timer = setInterval(next, 4000); }, 500);
+  /* Построить карточку лидера */
+  function buildCard(leader) {
+    var hasArticles = (leader.articlesCount || 0) > 0;
+    var card = document.createElement('div');
+    card.className = 'leader-card' + (hasArticles ? ' leader-card--clickable' : ' leader-card--inactive');
 
-  /* Пересчёт при изменении размера */
+    /* Фото / инициал */
+    var photo = document.createElement('div');
+    photo.className = 'leader-photo';
+    photo.setAttribute('aria-hidden', 'true');
+    if (leader.avatarUrl) {
+      var img = document.createElement('img');
+      img.src = leader.avatarUrl;
+      img.alt = '';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+      photo.appendChild(img);
+    } else {
+      photo.textContent = leader.emoji || leader.name.charAt(0);
+    }
+
+    /* Инфо */
+    var info = document.createElement('div');
+    info.className = 'leader-info';
+
+    var name = document.createElement('div');
+    name.className = 'leader-name';
+    name.textContent = leader.name;
+
+    var role = document.createElement('div');
+    role.className = 'leader-role';
+    role.textContent = (leader.bio || leader.role || 'Участник платформы');
+
+    var quote = document.createElement('div');
+    quote.className = 'leader-quote';
+    quote.textContent = leader.quote || '«Безопасность — это культура, которую мы строим вместе.»';
+
+    info.appendChild(name);
+    info.appendChild(role);
+    info.appendChild(quote);
+
+    /* Индикатор статей */
+    if (hasArticles) {
+      var badge = document.createElement('div');
+      badge.className = 'leader-articles-badge';
+      badge.textContent = leader.articlesCount + (leader.articlesCount === 1 ? ' статья' : leader.articlesCount < 5 ? ' статьи' : ' статей');
+      info.appendChild(badge);
+    }
+
+    card.appendChild(photo);
+    card.appendChild(info);
+
+    /* Клик: переходим на страницу статей с фильтром по автору */
+    if (hasArticles) {
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', 'Статьи автора: ' + leader.name);
+      card.title = 'Читать статьи · ' + leader.name;
+
+      function goToArticles(e) {
+        /* Показываем страницу статей и фильтруем по authorId */
+        if (typeof showPage === 'function') showPage('p-articles');
+        /* Устанавливаем фильтр после перехода */
+        setTimeout(function() {
+          if (typeof window.artFilterByAuthor === 'function') {
+            window.artFilterByAuthor(leader.id, leader.name);
+          }
+        }, 80);
+      }
+
+      card.addEventListener('click', goToArticles);
+      card.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goToArticles(e); }
+      });
+    } else {
+      card.setAttribute('aria-disabled', 'true');
+      card.title = 'У этого лидера пока нет статей';
+    }
+
+    return card;
+  }
+
+  /* Загрузка лидеров из API */
+  function loadLeaders() {
+    fetch(API_BASE + '/users/leaders', { cache: 'no-cache' })
+      .then(function(r) { return r.json(); })
+      .then(function(leaders) {
+        if (!track) return;
+        track.innerHTML = '';
+        if (!leaders || leaders.length === 0) {
+          /* Секцию скрываем если лидеров нет */
+          var section = document.getElementById('leaders');
+          if (section) section.style.display = 'none';
+          return;
+        }
+        leaders.forEach(function(leader) {
+          track.appendChild(buildCard(leader));
+        });
+        buildDots(leaders.length);
+
+        /* Запускаем карусель */
+        if (track) {
+          track.addEventListener('mouseenter', function() { clearInterval(timer); });
+          track.addEventListener('mouseleave', function() { timer = setInterval(next, 4000); });
+          var startX = 0;
+          track.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
+          track.addEventListener('touchend',   function(e) {
+            var dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 50) window.gL(dx < 0 ? current + 1 : current - 1);
+          }, { passive: true });
+        }
+        setTimeout(function() { timer = setInterval(next, 4000); }, 600);
+      })
+      .catch(function(err) {
+        console.warn('Leaders API unavailable:', err);
+        /* Fallback — скрываем секцию */
+        var section = document.getElementById('leaders');
+        if (section) section.style.display = 'none';
+      });
+  }
+
+  /* Пересчёт при resize */
   window.addEventListener('resize', function() {
     if (track) track.style.transform = 'translateX(-' + current * cardWidth() + 'px)';
   }, { passive: true });
+
+  /* Загрузка при старте */
+  loadLeaders();
 })();
 
 /* ══════════════════════════════════════════════════════════════════════
    9. MUSIC PLAYER — FIX: fakeProgress сбрасывается при смене трека
    ══════════════════════════════════════════════════════════════════════ */
 (function() {
-  var tracks = [
-    { title: 'Звуки природы',     artist: 'ЭкоСфера Band',    dur: '3:42', durSec: 222, likes: 847,  emoji: '🌿', isNew: true  },
-    { title: 'Безопасный путь',   artist: 'Алексей Волков',    dur: '4:15', durSec: 255, likes: 623,  emoji: '🛤️', isNew: true  },
-    { title: 'Культура будущего', artist: 'Мария Козлова',     dur: '5:02', durSec: 302, likes: 1204, emoji: '🌟', isNew: false },
-    { title: 'Зелёная энергия',   artist: 'Дмитрий Орлов',     dur: '3:28', durSec: 208, likes: 445,  emoji: '⚡', isNew: false },
-    { title: 'Живая планета',     artist: 'ЭкоСфера Хор',      dur: '6:11', durSec: 371, likes: 980,  emoji: '🌍', isNew: false },
-    { title: 'Охрана труда',      artist: 'Петров & Смирнова', dur: '2:54', durSec: 174, likes: 312,  emoji: '⚙️', isNew: false },
-    { title: 'Лесная симфония',   artist: 'Анна Волкова',      dur: '7:23', durSec: 443, likes: 756,  emoji: '🌲', isNew: false },
-  ];
+  var tracks = [];
+  var _tracksLoaded = false;
 
-  var sorted = tracks.slice().sort(function(a, b) {
+  function loadTracks(cb) {
+    if (_tracksLoaded) { if (cb) cb(); return; }
+    var API = window.ECOSFERA_API || 'http://localhost:4000';
+    fetch(API + '/tracks', { cache: 'no-cache' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        tracks = (Array.isArray(data) ? data : (data.tracks || [])).map(function(t) {
+          return {
+            title:  t.title  || 'Трек',
+            artist: t.artist || 'Исполнитель',
+            dur:    t.duration || '0:00',
+            durSec: t.durationSec || 0,
+            likes:  t.likes || 0,
+            emoji:  t.emoji || '🎵',
+            isNew:  !!t.isNew,
+            src:    t.src   || '',
+            cover:  t.coverImage || '',
+          };
+        });
+        _tracksLoaded = true;
+        if (cb) cb();
+      })
+      .catch(function() {
+        /* Fallback: плеер без треков */
+        tracks = [];
+        _tracksLoaded = true;
+        if (cb) cb();
+      });
+  }
+
+  /* Инициализируем плеер после загрузки треков */
+  function initPlayer() {
+    var sorted = tracks.slice().sort(function(a, b) {
     if (a.isNew !== b.isNew) return a.isNew ? -1 : 1;
     return b.likes - a.likes;
   });
@@ -673,7 +805,9 @@ initReveal();
     if (el('now-artist')) el('now-artist').textContent = t.artist;
     if (el('t-dur'))      el('t-dur').textContent      = t.dur;
     /* Update centre label emoji on the vinyl disc */
-    if (el('gram-label')) el('gram-label').textContent = t.emoji;
+    /* Update cover image if available */
+    var coverImg = document.getElementById('player-cover-img');
+    if (coverImg && t.coverUrl) coverImg.src = t.coverUrl;
   }
 
   function selectTrack(i) {
@@ -685,16 +819,14 @@ initReveal();
 
     var fillEl = document.getElementById('prog-fill');
     var curEl  = document.getElementById('t-cur');
-    var arm    = document.getElementById('arm');
     if (fillEl) fillEl.style.width  = '0%';
     if (curEl)  curEl.textContent   = '0:00';
-    if (arm)    arm.className       = 'gram-arm playing';
 
     isPlaying = true;
     var playBtn = document.getElementById('play-btn');
     if (playBtn) {
-      playBtn.textContent = '⏸';
       playBtn.setAttribute('aria-label', 'Пауза');
+      playBtn.classList.add('playing');
     }
 
     startSpin();
@@ -704,18 +836,12 @@ initReveal();
   window.togglePlay = function() {
     isPlaying = !isPlaying;
     var playBtn = document.getElementById('play-btn');
-    var arm     = document.getElementById('arm');
     if (playBtn) {
-      playBtn.textContent = isPlaying ? '⏸' : '▶';
       playBtn.setAttribute('aria-label', isPlaying ? 'Пауза' : 'Воспроизвести');
+      playBtn.classList.toggle('playing', isPlaying);
     }
-    if (isPlaying) {
-      startSpin();
-      if (arm) arm.className = 'gram-arm playing';
-    } else {
-      stopSpin();
-      if (arm) arm.className = 'gram-arm';
-    }
+    if (isPlaying) { startSpin(); }
+    else { stopSpin(); }
   };
 
   /* ── Spin control via CSS animation-play-state ──
@@ -796,6 +922,27 @@ initReveal();
 
   renderTrackList();
   selectTrack(0);
+  } // end initPlayer
+
+  /* Загружаем треки при показе страницы Искусство */
+  var _playerReady = false;
+  var _origShowPageArt = window.showPage;
+  window.showPage = function(id) {
+    _origShowPageArt(id);
+    if (id === 'p-art' && !_playerReady) {
+      _playerReady = true;
+      loadTracks(function() {
+        if (tracks.length > 0) initPlayer();
+      });
+    }
+  };
+
+  /* Если страница уже активна — инициализируем сразу */
+  if (document.getElementById('p-art') && document.getElementById('p-art').classList.contains('active')) {
+    loadTracks(function() {
+      if (tracks.length > 0) initPlayer();
+    });
+  }
 })();
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -805,55 +952,44 @@ initReveal();
    overlays, 10% green accent (#2AF598) on hover/active states.
    ══════════════════════════════════════════════════════════════════════ */
 (function() {
-  /* Real Unsplash photos — safety, ecology, art themes */
-  var galleryData = [
-    {
-      url:   'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80',
-      title: 'Культура безопасности',
-      tint:  'rgba(7,20,38,0.45)'
-    },
-    {
-      url:   'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80',
-      title: 'Жизнь леса',
-      tint:  'rgba(5,22,14,0.40)'
-    },
-    {
-      url:   'https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=800&q=80',
-      title: 'Чистый воздух',
-      tint:  'rgba(5,18,32,0.42)'
-    },
-    {
-      url:   'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
-      title: 'Технологии безопасности',
-      tint:  'rgba(7,14,38,0.50)'
-    },
-    {
-      url:   'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&q=80',
-      title: 'Возобновляемая энергия',
-      tint:  'rgba(7,22,14,0.42)'
-    },
-    {
-      url:   'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&q=80',
-      title: 'Экология будущего',
-      tint:  'rgba(5,20,12,0.44)'
-    },
-    {
-      url:   'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&q=80',
-      title: 'Солнечная энергетика',
-      tint:  'rgba(18,14,5,0.40)'
-    },
-    {
-      url:   'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=800&q=80',
-      title: 'Искусство и безопасность',
-      tint:  'rgba(7,14,30,0.48)'
-    },
-    {
-      url:   'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&q=80',
-      title: 'Природа под защитой',
-      tint:  'rgba(5,18,12,0.40)'
-    },
-  ];
+  /* Галерея загружается из API GET /gallery?type=GRID */
+  var galleryData = [];
   var shownRows = 1;
+  var _galleryLoaded = false;
+
+  function loadGallery(cb) {
+    if (_galleryLoaded) { if (cb) cb(); return; }
+    var API = window.ECOSFERA_API || 'http://localhost:4000';
+    fetch(API + '/gallery?type=GRID&limit=30', { cache: 'no-cache' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var items = Array.isArray(data) ? data : (data.items || []);
+        galleryData = items.map(function(g) {
+          return {
+            url:   g.imageUrl,
+            title: g.title || '',
+            tint:  'rgba(7,20,38,0.45)',
+          };
+        });
+        /* Fallback: Unsplash если API недоступен */
+        if (galleryData.length === 0) {
+          galleryData = [
+            { url:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80', title:'Культура безопасности', tint:'rgba(7,20,38,0.45)' },
+            { url:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80', title:'Жизнь леса',            tint:'rgba(5,22,14,0.40)'  },
+            { url:'https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=800&q=80', title:'Чистый воздух',         tint:'rgba(5,18,32,0.42)'  },
+            { url:'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80', title:'Технологии',            tint:'rgba(7,14,38,0.50)'  },
+            { url:'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80', title:'Зелёная планета',       tint:'rgba(5,18,12,0.45)'  },
+            { url:'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=800&q=80', title:'Природа под защитой',   tint:'rgba(5,18,12,0.40)'  },
+          ];
+        }
+        _galleryLoaded = true;
+        if (cb) cb();
+      })
+      .catch(function() {
+        _galleryLoaded = true;
+        if (cb) cb();
+      });
+  }
 
   function renderGallery() {
     var grid = document.getElementById('gal-grid');
@@ -904,7 +1040,19 @@ initReveal();
   var lbImg = document.getElementById('lb-img');
   if (lbImg) lbImg.addEventListener('click', function(e) { e.stopPropagation(); });
 
-  renderGallery();
+  /* Загружаем при показе страницы Искусство */
+  var _galleryInited = false;
+  var _origShowPageGal = window.showPage;
+  window.showPage = function(id) {
+    _origShowPageGal(id);
+    if (id === 'p-art' && !_galleryInited) {
+      _galleryInited = true;
+      loadGallery(function() { renderGallery(); });
+    }
+  };
+  if (document.getElementById('p-art') && document.getElementById('p-art').classList.contains('active')) {
+    loadGallery(function() { renderGallery(); });
+  }
 })();
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -1150,133 +1298,145 @@ window.toggleVideo = function() {
 })();
 
 /* ══════════════════════════════════════════════════════════════════════
-   13. PROJECTS — real images per project theme
+   13. PROJECTS — данные из API GET /projects
    ══════════════════════════════════════════════════════════════════════ */
 (function() {
-  var projects = [
-    {
-      title: 'Зелёный завод',
-      desc:  'Снижение выбросов CO₂ на предприятиях Урала на 40%.',
-      img:   'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&q=80',
-      tint:  'rgba(7,14,26,0.55)',
-      status: 'done',   date: '2025-11',
-      gallery: ['https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=300&q=70','https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=300&q=70','https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=300&q=70','https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&q=70'],
-      team: ['👷','🔬','🌿']
-    },
-    {
-      title: 'Чистые реки Сибири',
-      desc:  'Экспедиция по очистке 12 рек и мониторинг воды.',
-      img:   'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=80',
-      tint:  'rgba(5,14,26,0.50)',
-      status: 'active', date: '2026-01',
-      gallery: ['https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=300&q=70','https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=300&q=70','https://images.unsplash.com/photo-1501854140801-50d01698950b?w=300&q=70','https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&q=70'],
-      team: ['🌿','🔬','⚡','🎨']
-    },
-    {
-      title: 'Безопасный город',
-      desc:  'Аудит городской инфраструктуры и стандарты безопасности.',
-      img:   'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&q=80',
-      tint:  'rgba(7,12,28,0.54)',
-      status: 'active', date: '2025-12',
-      gallery: ['https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=300&q=70','https://images.unsplash.com/photo-1486325212027-8081e485255e?w=300&q=70','https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=300&q=70','https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&q=70'],
-      team: ['🏗️','⚡','👷']
-    },
-    {
-      title: 'Школьная безопасность',
-      desc:  'ISO 45001 в 50 школах трёх регионов России.',
-      img:   'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&q=80',
-      tint:  'rgba(7,14,24,0.52)',
-      status: 'done',   date: '2025-09',
-      gallery: ['https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=300&q=70','https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=300&q=70','https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=300&q=70','https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=300&q=70'],
-      team: ['🌿','🎨','🔬']
-    },
-    {
-      title: 'Солнечная энергия',
-      desc:  'Установка 200 солнечных панелей в малых городах.',
-      img:   'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=600&q=80',
-      tint:  'rgba(14,12,5,0.48)',
-      status: 'active', date: '2026-02',
-      gallery: ['https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=300&q=70','https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=300&q=70','https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=300&q=70','https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=300&q=70'],
-      team: ['⚡','🏗️','🌿','👷']
-    },
-    {
-      title: 'Лесной дозор',
-      desc:  'IoT-мониторинг лесных пожаров.',
-      img:   'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80',
-      tint:  'rgba(5,18,10,0.50)',
-      status: 'done',   date: '2025-10',
-      gallery: ['https://images.unsplash.com/photo-1448375240586-882707db888b?w=300&q=70','https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&q=70','https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&q=70','https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=300&q=70'],
-      team: ['🔬','🌿','⚡']
-    },
-  ];
+  var API       = window.ECOSFERA_API || 'http://localhost:4000';
+  var grid      = document.getElementById('proj-grid');
+  var detailBox = document.getElementById('proj-detail');
 
-  var grid   = document.getElementById('proj-grid');
-  var detail = document.getElementById('proj-detail');
-  if (!grid) return;
+  var STAGE_LABELS = { IDEA:'Идея', PLANNING:'Планирование', ACTIVE:'Активен', COMPLETED:'Завершён' };
+  var STAGE_COLORS = {
+    IDEA:      'rgba(139,92,246,.15)',
+    PLANNING:  'rgba(245,158,11,.15)',
+    ACTIVE:    'rgba(42,245,152,.15)',
+    COMPLETED: 'rgba(148,163,184,.15)',
+  };
+  var STAGE_TEXT = {
+    IDEA:      'var(--c-text-2)',
+    PLANNING:  '#f59e0b',
+    ACTIVE:    'var(--accent)',
+    COMPLETED: 'var(--c-text-3)',
+  };
 
-  projects.forEach(function(p, i) {
-    var card = document.createElement('div');
-    card.className = 'project-card reveal';
+  function renderSkeleton() {
+    if (!grid) return;
+    grid.innerHTML = '';
+    for (var i = 0; i < 6; i++) {
+      var sk = document.createElement('div');
+      sk.style.cssText = 'background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:24px;min-height:160px;opacity:0.5;animation:pulse 1.5s ease-in-out infinite alternate';
+      sk.innerHTML = '<div style="height:16px;background:var(--c-border);border-radius:4px;margin-bottom:10px;width:60%"></div>' +
+                     '<div style="height:12px;background:var(--c-border);border-radius:4px;width:90%"></div>';
+      grid.appendChild(sk);
+    }
+  }
+
+  function renderCard(p) {
+    var stage  = p.stage || 'ACTIVE';
+    var card   = document.createElement('div');
+    card.className = 'proj-card reveal';
     card.setAttribute('role', 'listitem');
     card.setAttribute('tabindex', '0');
-    var isActive = p.status === 'active';
-    card.innerHTML =
-      '<div class="project-card-img" style="position:relative;overflow:hidden;">' +
-        '<img src="' + p.img + '" alt="' + p.title + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">' +
-        '<div style="position:absolute;inset:0;background:' + p.tint + ';"></div>' +
-        '<div class="project-status ' + (isActive ? 'status-active' : 'status-done') + '" style="position:absolute;top:var(--sp-4);left:var(--sp-4);">' + (isActive ? 'В процессе' : 'Завершён') + '</div>' +
-      '</div>' +
-      '<div class="project-body">' +
-        '<div class="card-tag' + (isActive ? '' : ' coral') + '">Проект · ' + p.date + '</div>' +
-        '<div class="project-title">' + p.title + '</div>' +
-        '<div class="project-desc">' + p.desc + '</div>' +
-        '<div class="project-meta"><span>👥 ' + (p.team.length * 3) + ' участников</span><span>📅 ' + p.date + '</span></div>' +
-      '</div>';
-    card.addEventListener('click', function() { toggleDetail(i, p); });
-    card.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDetail(i, p); }
-    });
-    grid.appendChild(card);
-  });
+    card.setAttribute('aria-label', p.title);
 
-  function toggleDetail(i, p) {
-    var existing = detail.querySelector('.project-detail.open');
-    if (existing && parseInt(existing.dataset.idx) === i) {
-      existing.classList.remove('open');
-      return;
-    }
-    detail.innerHTML = '';
-    /* Gallery of real images */
-    var galHtml  = p.gallery.map(function(url) {
-      return '<div class="pgm-item" style="overflow:hidden;position:relative;">' +
-               '<img src="' + url + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;">' +
-             '</div>';
-    }).join('');
-    var teamHtml = p.team.map(function(e, j) {
-      return '<div class="participant"><div class="participant-avatar" aria-hidden="true">' + e + '</div><span>Участник ' + (j + 1) + '</span></div>';
-    }).join('');
-    var el = document.createElement('div');
-    el.className   = 'project-detail open';
-    el.dataset.idx = i;
-    el.innerHTML =
-      '<div class="project-detail-inner">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px">' +
-          '<h3 style="font-family:var(--f-display);font-size:22px;font-weight:800">' + p.title + '</h3>' +
-          '<button class="btn btn-ghost btn-sm" aria-label="Закрыть детали проекта">Закрыть ✕</button>' +
-        '</div>' +
-        '<div class="project-gallery-mini">' + galHtml + '</div>' +
-        '<p style="font-size:14px;line-height:1.8;color:var(--c-text-2);margin-bottom:32px">' + p.desc + ' Реализуется при поддержке платформы ЭкоСфера Безопасности.</p>' +
-        '<div style="font-family:var(--f-data);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--c-text-2);margin-bottom:12px">Команда проекта</div>' +
-        '<div class="participants">' + teamHtml + '</div>' +
-      '</div>';
-    el.querySelector('.btn-ghost').addEventListener('click', function() {
-      el.classList.remove('open');
+    var membersCount = p.members ? p.members.length : 0;
+    var stageLabel   = STAGE_LABELS[stage] || stage;
+
+    card.innerHTML =
+      '<div class="proj-card__head">' +
+        '<div class="proj-emoji" aria-hidden="true">' + (p.emoji || '🌿') + '</div>' +
+        '<span style="background:' + (STAGE_COLORS[stage] || 'transparent') + ';color:' + (STAGE_TEXT[stage] || 'inherit') + ';font-family:var(--f-data);font-size:11px;padding:3px 10px;border-radius:12px;font-weight:600">' + stageLabel + '</span>' +
+      '</div>' +
+      '<h3 class="proj-title">' + p.title + '</h3>' +
+      '<p class="proj-desc">' + (p.description || '').slice(0, 120) + (p.description && p.description.length > 120 ? '…' : '') + '</p>' +
+      '<div class="proj-meta">' +
+        (p.location ? '<span class="proj-loc">📍 ' + p.location + '</span>' : '') +
+        '<span class="proj-members">👥 ' + membersCount + '</span>' +
+      '</div>' +
+      '<button class="btn btn-ghost btn-sm proj-details-btn">Подробнее →</button>';
+
+    /* Клик — открываем детали */
+    card.querySelector('.proj-details-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      openDetail(p);
     });
-    detail.appendChild(el);
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(p); }
+    });
+
+    return card;
+  }
+
+  function openDetail(p) {
+    if (!detailBox) return;
+    detailBox.innerHTML = '';
+    var stage = p.stage || 'ACTIVE';
+    var membersHtml = (p.members || []).map(function(m) {
+      var name = m.user ? m.user.name : 'Участник';
+      return '<div style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:20px;font-size:12px;color:var(--c-text-2)">' +
+        '<span style="width:22px;height:22px;border-radius:50%;background:var(--c-green-dim);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--c-green)">' +
+        name.slice(0,1) + '</span>' + name + '</div>';
+    }).join('');
+
+    var el = document.createElement('div');
+    el.className = 'proj-detail-card';
+    el.setAttribute('role', 'region');
+    el.setAttribute('aria-label', 'Детали проекта: ' + p.title);
+    el.innerHTML =
+      '<div class="proj-detail__header">' +
+        '<div style="font-size:40px">' + (p.emoji || '🌿') + '</div>' +
+        '<div>' +
+          '<h3 style="font-family:var(--f-display);font-size:clamp(18px,2.5vw,24px);font-weight:700;margin-bottom:6px">' + p.title + '</h3>' +
+          '<span style="background:' + (STAGE_COLORS[stage]||'') + ';color:' + (STAGE_TEXT[stage]||'') + ';font-family:var(--f-data);font-size:11px;padding:3px 10px;border-radius:12px;font-weight:600">' + (STAGE_LABELS[stage]||stage) + '</span>' +
+          (p.location ? ' <span style="font-size:12px;color:var(--c-text-3);margin-left:6px">📍 ' + p.location + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<p style="font-size:14px;color:var(--c-text-2);line-height:1.75;margin-bottom:var(--sp-5)">' + (p.description || '') + '</p>' +
+      (membersHtml ? '<div style="font-family:var(--f-data);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--c-text-2);margin-bottom:12px">Команда проекта</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:var(--sp-5)">' + membersHtml + '</div>' : '') +
+      '<button class="btn btn-ghost" style="margin-top:8px">Закрыть ✕</button>';
+
+    el.querySelector('.btn-ghost').addEventListener('click', function() {
+      detailBox.innerHTML = '';
+    });
+    detailBox.appendChild(el);
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  initReveal();
+  function loadProjects() {
+    renderSkeleton();
+    fetch(API + '/projects?status=ACTIVE&limit=24', { cache: 'no-cache' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var list = Array.isArray(data) ? data : (data.projects || []);
+        if (!grid) return;
+        grid.innerHTML = '';
+        if (list.length === 0) {
+          grid.innerHTML = '<p style="color:var(--c-text-3);font-size:14px;grid-column:1/-1;text-align:center;padding:40px 0">Проектов пока нет</p>';
+          return;
+        }
+        list.forEach(function(p) { grid.appendChild(renderCard(p)); });
+        initReveal();
+      })
+      .catch(function(err) {
+        console.warn('Projects API unavailable', err);
+        if (grid) grid.innerHTML = '<p style="color:var(--c-text-3);font-size:14px;grid-column:1/-1;text-align:center;padding:40px 0">Не удалось загрузить проекты</p>';
+      });
+  }
+
+  /* Загружаем при показе страницы проектов */
+  var _origShowPage = window.showPage;
+  window.showPage = function(id) {
+    _origShowPage(id);
+    if (id === 'p-projects') loadProjects();
+  };
+
+  /* Если страница уже активна при загрузке */
+  if (document.getElementById('p-projects') && document.getElementById('p-projects').classList.contains('active')) {
+    loadProjects();
+  }
+
+  initReveal();  initReveal();
 })();
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -1565,10 +1725,9 @@ window.toggleVideo = function() {
 })();
 
 /* ══════════════════════════════════════════════════════════════════════
-   15. INITIATIVE FORM — FIX: валидация по id, не по querySelectorAll
+   15. INITIATIVE FORM — подключена к POST /initiatives
    ══════════════════════════════════════════════════════════════════════ */
 window.submitInitiative = function() {
-  /* Проверяем конкретные обязательные поля */
   var required = ['init-name', 'init-cat', 'init-short', 'init-problem', 'init-solution', 'init-author'];
   var empty = required.filter(function(id) {
     var el = document.getElementById(id);
@@ -1576,7 +1735,6 @@ window.submitInitiative = function() {
   });
 
   if (empty.length > 0) {
-    /* Подсвечиваем пустые поля */
     empty.forEach(function(id) {
       var el = document.getElementById(id);
       if (el) {
@@ -1584,13 +1742,17 @@ window.submitInitiative = function() {
         el.addEventListener('input', function() { el.style.borderColor = ''; }, { once: true });
       }
     });
-    alert('Пожалуйста, заполните все обязательные поля (отмечены *)');
     var firstEl = document.getElementById(empty[0]);
     if (firstEl) firstEl.focus();
     return;
   }
 
-  ['is1','is2','is3','is4'].forEach(function(id, i) {
+  /* Блокируем кнопку */
+  var btn = document.querySelector('[onclick="submitInitiative()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Отправка…'; }
+
+  /* Анимация шагов */
+  ['is1','is2','is3'].forEach(function(id, i) {
     setTimeout(function() {
       var el = document.getElementById(id);
       if (el) {
@@ -1598,12 +1760,83 @@ window.submitInitiative = function() {
         var dot = el.querySelector('.init-step-dot');
         if (dot) dot.textContent = '✓';
       }
-    }, i * 400);
+    }, i * 300);
   });
 
-  setTimeout(function() {
-    alert('✅ Инициатива успешно отправлена!\nМодератор свяжется с вами в течение 3 рабочих дней.');
-  }, 1800);
+  var payload = {
+    name:       document.getElementById('init-name').value.trim(),
+    category:   document.getElementById('init-cat').value.trim(),
+    shortDesc:  document.getElementById('init-short').value.trim(),
+    problem:    document.getElementById('init-problem').value.trim(),
+    solution:   document.getElementById('init-solution').value.trim(),
+    result:     (document.getElementById('init-result')  || {}).value || '',
+    location:   (document.getElementById('init-loc')     || {}).value || '',
+    duration:   (document.getElementById('init-dur')     || {}).value || '',
+    resources:  (document.getElementById('init-res')     || {}).value || '',
+    links:      (document.getElementById('init-link')    || {}).value || '',
+    authorName: document.getElementById('init-author').value.trim(),
+  };
+
+  /* Пробуем получить токен авторизованного пользователя */
+  var token = null;
+  try {
+    var stored = JSON.parse(localStorage.getItem('ecosfera_auth') || '{}');
+    token = stored.accessToken || null;
+  } catch(e) {}
+
+  var headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+
+  fetch((window.ECOSFERA_API || 'http://localhost:4000') + '/initiatives', {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(payload),
+  })
+  .then(function(r) {
+    return r.json().then(function(data) {
+      if (!r.ok) throw new Error(data.error || 'Ошибка отправки');
+      return data;
+    });
+  })
+  .then(function() {
+    /* Финальный шаг */
+    var is4 = document.getElementById('is4');
+    if (is4) {
+      is4.className = 'init-step done';
+      var dot = is4.querySelector('.init-step-dot');
+      if (dot) dot.textContent = '✓';
+    }
+
+    /* Заменяем форму на успех-экран */
+    setTimeout(function() {
+      var grid = document.querySelector('.init-form-grid');
+      if (grid) {
+        grid.innerHTML = '<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:20px;text-align:center">' +
+          '<div style="font-size:64px">✅</div>' +
+          '<h2 style="font-family:var(--f-display);font-size:clamp(22px,3vw,36px);color:var(--c-text-1)">Инициатива отправлена!</h2>' +
+          '<p style="color:var(--c-text-2);max-width:440px;line-height:1.8">Модератор свяжется с вами в течение 3 рабочих дней.<br>Спасибо за вклад в культуру безопасности.</p>' +
+          '<button class="btn btn-ghost btn-lg" onclick="showPage(\'p-home\')">На главную</button>' +
+        '</div>';
+      }
+    }, 900);
+  })
+  .catch(function(err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Отправить инициативу →'; }
+    /* Сброс шагов */
+    ['is1','is2','is3'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.className = el.id === 'is1' ? 'init-step done' : 'init-step';
+    });
+    /* Показываем ошибку */
+    var errEl = document.getElementById('init-error-msg');
+    if (!errEl) {
+      errEl = document.createElement('div');
+      errEl.id = 'init-error-msg';
+      errEl.style.cssText = 'color:#FF6B6B;font-size:13px;margin-top:10px;text-align:center';
+      btn && btn.parentNode && btn.parentNode.insertBefore(errEl, btn.nextSibling);
+    }
+    errEl.textContent = err.message;
+  });
 };
 
 window.triggerUpload = function(id) {
@@ -1642,17 +1875,19 @@ window.handleFiles = function(input) {
 })();
 
 /* ══════════════════════════════════════════════════════════════════════
-   16. REGISTRATION FORM — FIX: читаем правильные id
+   16. REGISTRATION FORM — подключена к /auth/register
    ══════════════════════════════════════════════════════════════════════ */
 window.registerUser = function() {
   var nameEl  = document.getElementById('reg-name');
   var emailEl = document.getElementById('reg-email');
   var pwEl    = document.getElementById('pw-input');
+  var btn     = document.querySelector('[onclick="registerUser()"]');
 
+  /* Валидация */
   var errors = [];
-  if (!nameEl  || !nameEl.value.trim())              errors.push(nameEl);
-  if (!emailEl || !emailEl.value.trim())             errors.push(emailEl);
-  if (pwEl && pwEl.value.length < 8)                 errors.push(pwEl);
+  if (!nameEl  || nameEl.value.trim().length < 2)    errors.push(nameEl);
+  if (!emailEl || !emailEl.value.includes('@'))       errors.push(emailEl);
+  if (!pwEl    || pwEl.value.length < 8)              errors.push(pwEl);
 
   if (errors.length) {
     errors.forEach(function(el) {
@@ -1660,13 +1895,59 @@ window.registerUser = function() {
       el.style.borderColor = 'rgba(255,107,107,.6)';
       el.addEventListener('input', function() { el.style.borderColor = ''; }, { once: true });
     });
-    alert('Пожалуйста, заполните все поля корректно (пароль — минимум 8 символов)');
-    if (errors[0]) errors[0].focus();
+    errors[0] && errors[0].focus();
     return;
   }
 
-  var firstName = nameEl.value.trim().split(' ')[0];
-  alert('🎉 Добро пожаловать, ' + firstName + '!\nАккаунт создан. Проверьте email для подтверждения.');
+  /* Блокируем кнопку */
+  if (btn) { btn.disabled = true; btn.textContent = 'Регистрация…'; }
+
+  fetch((window.ECOSFERA_API || 'http://localhost:4000') + '/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name:     nameEl.value.trim(),
+      email:    emailEl.value.trim(),
+      password: pwEl.value,
+    }),
+  })
+  .then(function(r) {
+    return r.json().then(function(data) {
+      if (!r.ok) throw new Error(data.error || 'Ошибка регистрации');
+      return data;
+    });
+  })
+  .then(function(data) {
+    /* Сохраняем токены */
+    try {
+      localStorage.setItem('ecosfera_auth', JSON.stringify({ refreshToken: data.refreshToken }));
+      var exp = new Date(Date.now() + 864e5).toUTCString();
+      document.cookie = 'ecosfera_access=' + encodeURIComponent(data.accessToken) + ';expires=' + exp + ';path=/;SameSite=Lax';
+    } catch(e) {}
+
+    /* Показываем успех */
+    var inner = document.getElementById('reg-inner');
+    if (inner) {
+      inner.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:400px;gap:20px;text-align:center">' +
+        '<div style="font-size:56px">🎉</div>' +
+        '<h2 style="font-family:var(--f-display);font-size:clamp(24px,3vw,36px);color:var(--c-text-1)">Добро пожаловать, ' + data.user.name.split(' ')[0] + '!</h2>' +
+        '<p style="color:var(--c-text-2);max-width:340px">Ваш аккаунт создан. Переходите в личный кабинет.</p>' +
+        '<a href="http://localhost:3000/dashboard" class="btn btn-primary btn-lg" style="margin-top:8px">Перейти в кабинет →</a>' +
+      '</div>';
+    }
+  })
+  .catch(function(err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Создать аккаунт →'; }
+    /* Показываем ошибку под кнопкой */
+    var existing = document.getElementById('reg-error-msg');
+    if (!existing) {
+      existing = document.createElement('div');
+      existing.id = 'reg-error-msg';
+      existing.style.cssText = 'color:#FF6B6B;font-size:13px;margin-top:8px;text-align:center';
+      btn && btn.parentNode && btn.parentNode.insertBefore(existing, btn.nextSibling);
+    }
+    existing.textContent = err.message;
+  });
 };
 
 window.togglePw = function() {
@@ -1712,4 +1993,503 @@ if (pwInput) {
       }
     }, 150);
   }, { passive: true });
+})();
+
+/* ══════════════════════════════════════════════════════════════════════
+   17. ARTICLES PAGE — SPA module
+   Data layer: mock JSON (mirrors Prisma Article/User/Like schema).
+   Prod: replace artFetch() with axios.get('http://localhost:4000/articles')
+   ══════════════════════════════════════════════════════════════════════ */
+(function() {
+
+  /* ── ARTICLES loaded from API ── */
+  var ARTICLES = [];          /* будет заполнен из GET /articles */
+  var _articlesLoaded = false;
+
+  /* Нормализуем статью из API в формат, совместимый с рендером */
+  function normalizeArticle(a) {
+    return {
+      id:        a.id,
+      slug:      a.slug,
+      title:     a.title,
+      lead:      a.lead   || '',
+      tag:       a.tag    || 'general',
+      tagLabel:  { iso:'ISO / ГОСТ', ecology:'Экология', safety:'Охрана труда',
+                   energy:'Энергетика', culture:'Культура', general:'Общее' }[a.tag] || a.tag,
+      cover:     a.coverImage || '',
+      readMin:   a.readTime || 5,
+      published: a.status === 'PUBLISHED',
+      views:     a.views  || 0,
+      likes:     a.likes  || 0,
+      createdAt: (a.createdAt || '').slice(0, 10),
+      author: {
+        id:       a.author ? a.author.id : '',
+        name:     a.author ? a.author.name : 'Автор',
+        role:     a.author ? (a.author.bio || a.author.role || '') : '',
+        avatarUrl: a.author ? (a.author.avatarUrl || '') : '',
+        initials: a.author ? a.author.name.slice(0,2).toUpperCase() : 'АВ',
+      },
+      content: Array.isArray(a.content) ? a.content : [],
+    };
+  }
+
+  function loadArticlesFromAPI(callback) {
+    if (_articlesLoaded) { if (callback) callback(); return; }
+    var API = window.ECOSFERA_API || 'http://localhost:4000';
+    fetch(API + '/articles?limit=50', { cache: 'no-cache' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var list = Array.isArray(data) ? data : (data.articles || []);
+        ARTICLES = list.map(normalizeArticle);
+        _articlesLoaded = true;
+        if (callback) callback();
+      })
+      .catch(function(err) {
+        console.warn('Articles API unavailable, using empty list', err);
+        ARTICLES = [];
+        _articlesLoaded = true;
+        if (callback) callback();
+      });
+  }
+
+  var currentArticleId = null;
+  var likedArticles    = {};
+  var activeTag        = 'all';
+  var searchQuery      = '';
+  var activeAuthorId   = null;   /* фильтр по автору — заполняется из карточки лидера */
+  var activeAuthorName = '';
+  var shownCount       = 4;
+  var DRAFT_KEY        = 'ecosfera_draft';
+  var editorBlocks     = [];
+
+  /* ── Filtering & sorting ── */
+  function getFiltered() {
+    return ARTICLES.filter(function(a) {
+      var tagOk    = activeTag === 'all' || a.tag === activeTag;
+      var searchOk = !searchQuery || (
+        a.title.toLowerCase().includes(searchQuery) ||
+        a.lead.toLowerCase().includes(searchQuery) ||
+        a.author.name.toLowerCase().includes(searchQuery)
+      );
+      /* Фильтр по автору-лидеру: сравниваем по id ИЛИ по имени (mock-данные не имеют id) */
+      var authorOk = !activeAuthorId || a.author.id === activeAuthorId || a.author.name === activeAuthorName;
+      return tagOk && searchOk && authorOk;
+    });
+  }
+
+  /* Публичная функция: вызывается при клике на карточку лидера */
+  window.artFilterByAuthor = function(authorId, authorName) {
+    activeAuthorId   = authorId;
+    activeAuthorName = authorName || '';
+    activeTag        = 'all';
+    searchQuery      = '';
+    shownCount       = 4;
+
+    /* Сбрасываем тег и поиск визуально */
+    document.querySelectorAll('.art-tag').forEach(function(b) { b.classList.remove('art-tag--active'); });
+    var allTag = document.querySelector('.art-tag[data-tag="all"]');
+    if (allTag) allTag.classList.add('art-tag--active');
+    var si = document.getElementById('art-search-input');
+    if (si) si.value = '';
+
+    /* Показываем баннер «Статьи автора: Имя» */
+    var banner = document.getElementById('art-author-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'art-author-banner';
+      banner.style.cssText = [
+        'display:flex;align-items:center;gap:10px;padding:10px 16px',
+        'background:rgba(42,245,152,.08);border:1px solid rgba(42,245,152,.2)',
+        'border-radius:10px;font-size:13px;color:var(--c-text-2)',
+        'margin-bottom:16px',
+      ].join(';');
+      var grid = document.getElementById('art-grid');
+      if (grid && grid.parentNode) grid.parentNode.insertBefore(banner, grid);
+    }
+    banner.style.display = 'flex';
+    banner.innerHTML =
+      '<span style="color:var(--accent)">🏆 Статьи лидера:</span>' +
+      '<strong style="color:var(--c-text-1)">' + (authorName || '') + '</strong>' +
+      '<button onclick="window.artClearAuthorFilter()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--c-text-3);font-size:18px;line-height:1" aria-label="Сбросить фильтр">✕</button>';
+
+    renderList();
+  };
+
+  /* Сброс фильтра по автору */
+  window.artClearAuthorFilter = function() {
+    activeAuthorId   = null;
+    activeAuthorName = '';
+    var banner = document.getElementById('art-author-banner');
+    if (banner) banner.style.display = 'none';
+    shownCount = 4;
+    renderList();
+  };
+
+  function getSorted(arr) {
+    var sel = document.getElementById('art-sort-select');
+    var mode = sel ? sel.value : 'newest';
+    return arr.slice().sort(function(a, b) {
+      if (mode === 'newest')  return new Date(b.createdAt) - new Date(a.createdAt);
+      if (mode === 'popular') return b.views - a.views;
+      if (mode === 'reading') return a.readMin - b.readMin;
+      return 0;
+    });
+  }
+
+  /* ── Render article card ── */
+  function renderCard(a) {
+    var card = document.createElement('article');
+    card.className = 'art-card reveal';
+    card.setAttribute('role', 'listitem');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', a.title);
+    card.innerHTML =
+      '<div class="art-card__img-wrap">' +
+        '<img src="' + a.cover + '" alt="' + a.title + '" loading="lazy">' +
+        '<div class="art-card__tint"></div>' +
+        '<span class="art-card__tag">' + a.tagLabel + '</span>' +
+      '</div>' +
+      '<div class="art-card__body">' +
+        '<h2 class="art-card__title">' + a.title + '</h2>' +
+        '<p  class="art-card__lead">'  + a.lead.substring(0, 110) + '…</p>' +
+        '<div class="art-card__meta">' +
+          '<div class="art-card__author">' +
+            '<div class="art-card__avatar">' + a.author.initials + '</div>' +
+            '<span>' + a.author.name + '</span>' +
+          '</div>' +
+          '<div class="art-card__stats">' +
+            '<span>' + a.readMin + ' мин</span>' +
+            '<span>' + a.views.toLocaleString('ru-RU') + ' просм</span>' +
+            '<span>' + (likedArticles[a.id] ? '♥' : '♡') + ' ' + a.likes + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    card.addEventListener('click', function() { artOpenArticle(a.id); });
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); artOpenArticle(a.id); }
+    });
+    return card;
+  }
+
+  /* ── Render list ── */
+  function renderList() {
+    var grid = document.getElementById('art-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    var items = getSorted(getFiltered()).slice(0, shownCount);
+    if (!items.length) {
+      grid.innerHTML = '<div class="art-empty">По вашему запросу статей не найдено</div>';
+      document.getElementById('art-load-btn').style.display = 'none';
+      return;
+    }
+    items.forEach(function(a) { grid.appendChild(renderCard(a)); });
+    var all = getFiltered().length;
+    document.getElementById('art-load-btn').style.display = shownCount >= all ? 'none' : 'inline-flex';
+    if (window._initStagger) window._initStagger();
+  }
+
+  window.artLoadMore = function() {
+    shownCount += 4;
+    renderList();
+  };
+
+  /* ── Open full article ── */
+  function artOpenArticle(id) {
+    var a = ARTICLES.find(function(x) { return x.id === id; });
+    if (!a) return;
+    currentArticleId = id;
+
+    /* fill fields */
+    var $ = function(sel) { return document.getElementById(sel); };
+    $('art-cover-img').src    = a.cover;
+    $('art-cover-img').alt    = a.title;
+    $('art-kicker').textContent  = a.tagLabel;
+    $('art-title').textContent   = a.title;
+    $('art-lead').textContent    = a.lead;
+    $('art-reading-time').textContent = a.readMin + ' мин чтения ·';
+    $('art-date').textContent    = new Date(a.createdAt).toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'});
+    $('art-author-name').textContent = a.author.name;
+    $('art-author-role').textContent = a.author.role;
+    $('art-author-avatar').textContent = a.author.initials;
+    $('art-like-count').textContent    = a.likes + (likedArticles[id] ? ' ♥' : '');
+
+    /* render Editor.js-style blocks */
+    var body = $('art-body');
+    body.innerHTML = '';
+    (a.content || []).forEach(function(block) {
+      var el;
+      if (block.type === 'paragraph') {
+        el = document.createElement('p');
+        el.className = 'art-block-p';
+        el.textContent = block.text;
+      } else if (block.type === 'heading') {
+        el = document.createElement('h2');
+        el.className = 'art-block-h';
+        el.textContent = block.text;
+      } else if (block.type === 'quote') {
+        el = document.createElement('blockquote');
+        el.className = 'art-block-quote';
+        el.innerHTML = '<p>' + block.text + '</p>' +
+          (block.caption ? '<cite>' + block.caption + '</cite>' : '');
+      } else if (block.type === 'list') {
+        el = document.createElement('ul');
+        el.className = 'art-block-list';
+        (block.items || []).forEach(function(item) {
+          var li = document.createElement('li');
+          li.textContent = item;
+          el.appendChild(li);
+        });
+      } else if (block.type === 'image') {
+        el = document.createElement('figure');
+        el.className = 'art-block-img';
+        el.innerHTML = '<img src="' + (block.url||'') + '" alt="' + (block.caption||'') + '" loading="lazy">' +
+          (block.caption ? '<figcaption>' + block.caption + '</figcaption>' : '');
+      }
+      if (el) body.appendChild(el);
+    });
+
+    /* related */
+    var relGrid = $('art-related-grid');
+    relGrid.innerHTML = '';
+    ARTICLES.filter(function(x) { return x.id !== id && x.tag === a.tag; })
+      .slice(0, 3)
+      .forEach(function(rel) {
+        var div = document.createElement('div');
+        div.className = 'art-related__card';
+        div.innerHTML =
+          '<div class="art-related__card-img"><img src="' + rel.cover + '" alt="' + rel.title + '" loading="lazy"></div>' +
+          '<div class="art-related__card-title">' + rel.title + '</div>' +
+          '<div class="art-related__card-meta">' + rel.author.name + ' · ' + rel.readMin + ' мин</div>';
+        div.addEventListener('click', function() { artOpenArticle(rel.id); window.scrollTo({top:0,behavior:'instant'}); });
+        relGrid.appendChild(div);
+      });
+
+    artShowView('article');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  /* ── Like ── */
+  window.artToggleLike = function() {
+    if (!currentArticleId) return;
+    var a = ARTICLES.find(function(x) { return x.id === currentArticleId; });
+    if (!a) return;
+    if (likedArticles[currentArticleId]) {
+      likedArticles[currentArticleId] = false;
+      a.likes = Math.max(0, a.likes - 1);
+    } else {
+      likedArticles[currentArticleId] = true;
+      a.likes++;
+    }
+    var btn = document.getElementById('art-like-btn');
+    if (btn) btn.classList.toggle('liked', likedArticles[currentArticleId]);
+    var cnt = document.getElementById('art-like-count');
+    if (cnt) cnt.textContent = a.likes + (likedArticles[currentArticleId] ? ' ♥' : '');
+  };
+
+  /* ── Share ── */
+  window.artShare = function(method) {
+    var url = window.location.href + '#' + currentArticleId;
+    if (method === 'tg') window.open('https://t.me/share/url?url=' + encodeURIComponent(url));
+    if (method === 'copy') {
+      navigator.clipboard.writeText(url).then(function() { alert('Ссылка скопирована!'); });
+    }
+  };
+
+  /* ── View switcher ── */
+  window.artShowView = function(name) {
+    ['list','article','write'].forEach(function(v) {
+      var el = document.getElementById('art-view-' + v);
+      if (el) el.style.display = v === name ? 'block' : 'none';
+    });
+    if (name === 'list') { shownCount = 4; renderList(); }
+    if (name === 'write') initComposer();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  /* ── Tag filters ── */
+  document.querySelectorAll('.art-tag').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.art-tag').forEach(function(b) { b.classList.remove('art-tag--active'); });
+      btn.classList.add('art-tag--active');
+      activeTag  = btn.getAttribute('data-tag');
+      shownCount = 4;
+      renderList();
+    });
+  });
+
+  /* ── Search ── */
+  var searchInput = document.getElementById('art-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      searchQuery = this.value.toLowerCase().trim();
+      shownCount  = 4;
+      renderList();
+    });
+  }
+
+  /* ── Sort ── */
+  var sortSel = document.getElementById('art-sort-select');
+  if (sortSel) sortSel.addEventListener('change', renderList);
+
+  /* ── Composer (Editor.js-style blocks) ── */
+  function initComposer() {
+    editorBlocks = [{ type: 'paragraph', text: '' }];
+    renderEditorBlocks();
+    var draftRaw = localStorage.getItem(DRAFT_KEY);
+    if (draftRaw) {
+      try {
+        var d = JSON.parse(draftRaw);
+        if (d.title)  document.getElementById('composer-title').value = d.title;
+        if (d.lead)   document.getElementById('composer-lead').value  = d.lead;
+        if (d.blocks) { editorBlocks = d.blocks; renderEditorBlocks(); }
+      } catch(e) {}
+    }
+  }
+
+  window.artAddBlock = function(type) {
+    var block = { type: type };
+    if (type === 'paragraph') block.text = '';
+    if (type === 'heading')   block.text = '';
+    if (type === 'quote')     { block.text = ''; block.caption = ''; }
+    if (type === 'image')     { block.url = ''; block.caption = ''; }
+    if (type === 'list')      block.items = [''];
+    editorBlocks.push(block);
+    renderEditorBlocks();
+  };
+
+  function renderEditorBlocks() {
+    var editor = document.getElementById('art-editor');
+    if (!editor) return;
+    editor.innerHTML = '';
+    editorBlocks.forEach(function(block, idx) {
+      var wrap = document.createElement('div');
+      wrap.className = 'art-editor__block';
+      wrap.setAttribute('data-idx', idx);
+
+      var deleteBtn = '<button class="art-editor__block-del" onclick="artDeleteBlock(' + idx + ')" aria-label="Удалить блок">' +
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+
+      if (block.type === 'paragraph') {
+        wrap.innerHTML = deleteBtn + '<textarea class="art-editor__input art-editor__para" placeholder="Начните писать…" oninput="artUpdateBlock(' + idx + ',\'text\',this.value)">' + (block.text||'') + '</textarea>';
+      } else if (block.type === 'heading') {
+        wrap.innerHTML = deleteBtn + '<input class="art-editor__input art-editor__head" type="text" placeholder="Заголовок раздела…" value="' + (block.text||'') + '" oninput="artUpdateBlock(' + idx + ',\'text\',this.value)">';
+      } else if (block.type === 'quote') {
+        wrap.innerHTML = deleteBtn +
+          '<textarea class="art-editor__input art-editor__quote-text" placeholder="Текст цитаты…" oninput="artUpdateBlock(' + idx + ',\'text\',this.value)">' + (block.text||'') + '</textarea>' +
+          '<input class="art-editor__input art-editor__quote-cap" type="text" placeholder="Источник цитаты…" value="' + (block.caption||'') + '" oninput="artUpdateBlock(' + idx + ',\'caption\',this.value)">';
+      } else if (block.type === 'image') {
+        wrap.innerHTML = deleteBtn +
+          '<input class="art-editor__input" type="url" placeholder="URL изображения (Cloudinary/S3)…" value="' + (block.url||'') + '" oninput="artUpdateBlock(' + idx + ',\'url\',this.value)">' +
+          '<input class="art-editor__input" type="text" placeholder="Подпись к фото…" value="' + (block.caption||'') + '" oninput="artUpdateBlock(' + idx + ',\'caption\',this.value)">';
+      } else if (block.type === 'list') {
+        var itemsHtml = (block.items||['']).map(function(item, ii) {
+          return '<div class="art-editor__list-item">' +
+            '<input class="art-editor__input" type="text" placeholder="Пункт списка…" value="' + item + '" oninput="artUpdateListItem(' + idx + ',' + ii + ',this.value)">' +
+            '</div>';
+        }).join('');
+        wrap.innerHTML = deleteBtn + '<div class="art-editor__list-wrap">' + itemsHtml +
+          '<button class="art-editor__add-item" onclick="artAddListItem(' + idx + ')">+ Добавить пункт</button></div>';
+      }
+      editor.appendChild(wrap);
+    });
+  }
+
+  window.artUpdateBlock = function(idx, key, val) {
+    if (editorBlocks[idx]) editorBlocks[idx][key] = val;
+  };
+  window.artUpdateListItem = function(idx, ii, val) {
+    if (editorBlocks[idx] && editorBlocks[idx].items) editorBlocks[idx].items[ii] = val;
+  };
+  window.artAddListItem = function(idx) {
+    if (editorBlocks[idx] && editorBlocks[idx].items) {
+      editorBlocks[idx].items.push('');
+      renderEditorBlocks();
+    }
+  };
+  window.artDeleteBlock = function(idx) {
+    editorBlocks.splice(idx, 1);
+    renderEditorBlocks();
+  };
+
+  /* ── Slug generator ── */
+  window.artUpdateSlug = function(title) {
+    var slug = title.toLowerCase()
+      .replace(/[а-яёА-ЯЁ]/g, function(c) {
+        var map = {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya'};
+        return map[c.toLowerCase()] || c;
+      })
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .slice(0, 60);
+    var pre = document.getElementById('composer-slug-preview');
+    if (pre) pre.textContent = slug || '—';
+  };
+
+  /* ── Cover preview ── */
+  window.artPreviewCover = function(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var preview = document.getElementById('composer-cover-preview');
+      var ph = document.getElementById('composer-cover-ph');
+      if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
+      if (ph) ph.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  /* ── Save / Publish ── */
+  window.artSaveDraft = function() {
+    var draft = {
+      title:  document.getElementById('composer-title').value,
+      lead:   document.getElementById('composer-lead').value,
+      blocks: editorBlocks
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    alert('Черновик сохранён локально.\nProd: POST /articles { published: false }');
+  };
+
+  window.artPublish = function() {
+    var title  = document.getElementById('composer-title').value.trim();
+    var author = document.getElementById('composer-author').value.trim();
+    if (!title)  { alert('Введите заголовок'); return; }
+    if (!author) { alert('Укажите автора'); return; }
+    /* Mock: add to local array */
+    var newArt = {
+      id: 'art-' + Date.now(),
+      slug: title.toLowerCase().replace(/\s+/g,'-').slice(0,60),
+      title: title,
+      lead:  document.getElementById('composer-lead').value || 'Нет описания',
+      tag:   document.getElementById('composer-tag').value,
+      tagLabel: document.getElementById('composer-tag').options[document.getElementById('composer-tag').selectedIndex].text,
+      cover: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&q=80',
+      readMin: parseInt(document.getElementById('composer-read').value) || 5,
+      published: true,
+      views: 0, likes: 0,
+      createdAt: new Date().toISOString().slice(0,10),
+      author: { name: author, role: 'Автор', avatarUrl: '', initials: author.slice(0,2).toUpperCase() },
+      content: editorBlocks
+    };
+    ARTICLES.unshift(newArt);
+    localStorage.removeItem(DRAFT_KEY);
+    alert('✅ Статья "' + title + '" опубликована!\nProd: POST http://localhost:4000/articles');
+    artShowView('list');
+  };
+
+  /* ── Init — загружаем из API, затем рендерим ── */
+  loadArticlesFromAPI(function() {
+    renderList();
+  });
+  /* При переключении на страницу статей — перезагружаем если ещё нет данных */
+  var _origArtShowView = window.artShowView;
+  window.artShowView = function(name) {
+    if (name === 'list' && !_articlesLoaded) {
+      loadArticlesFromAPI(function() { _origArtShowView(name); });
+      return;
+    }
+    _origArtShowView(name);
+  };
+
 })();
