@@ -207,6 +207,15 @@ function openMob() {
   if (firstLink) setTimeout(function() { firstLink.focus(); }, 50);
 }
 
+function toggleMob() {
+  if (!mobMenu) return;
+  if (mobMenu.classList.contains('open')) {
+    window.closeMob();
+    return;
+  }
+  openMob();
+}
+
 window.closeMob = function() {
   if (!mobMenu) return;
   mobMenu.classList.remove('open');
@@ -219,7 +228,7 @@ window.closeMob = function() {
   }
 };
 
-if (burger)     burger.addEventListener('click', openMob);
+if (burger)     burger.addEventListener('click', toggleMob);
 if (mobClose)   mobClose.addEventListener('click', window.closeMob);
 
 /* Клик / тап по overlay — закрывает меню */
