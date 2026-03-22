@@ -5,6 +5,15 @@
 
 'use strict';
 
+(function() {
+  var root = document.documentElement;
+  function syncMobileClass() {
+    root.classList.toggle('is-mobile', window.innerWidth <= 768);
+  }
+  syncMobileClass();
+  window.addEventListener('resize', syncMobileClass, { passive: true });
+})();
+
 /* ══════════════════════════════════════════════════════════════════════
    1. SPA PAGE SYSTEM
    ══════════════════════════════════════════════════════════════════════ */
@@ -46,7 +55,7 @@ function showPage(id) {
     a.classList.toggle('active', a.id === 'nl-' + pageKey);
   });
 
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  window.scrollTo({ top: 0, behavior: 'auto' });
   initReveal();
   /* Re-init stagger for newly visible sections */
   if (window._initStagger) window._initStagger();
@@ -66,6 +75,10 @@ window.goHome   = function() { showPage('p-home'); };
   var canvas = document.getElementById('world-canvas');
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
+  var reduceMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var smallScreen = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+  var isPaused = false;
+  var rafId = 0;
 
   /* Orb definitions — colour, size, speed, initial position */
   var orbs = [
@@ -81,18 +94,47 @@ window.goHome   = function() { showPage('p-home'); };
   var W = 0, H = 0;
 
   function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+    if (isPaused) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
-  resize();
+
+  function shouldPause() {
+    return (reduceMotion && reduceMotion.matches) || (smallScreen && smallScreen.matches);
+  }
+
+  function applyCanvasMode() {
+    isPaused = shouldPause();
+    canvas.style.display = isPaused ? 'none' : 'block';
+    if (isPaused) {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+      return;
+    }
+    resize();
+    if (!rafId) rafId = requestAnimationFrame(draw);
+  }
+
+  applyCanvasMode();
   window.addEventListener('resize', resize, { passive: true });
+  if (reduceMotion && reduceMotion.addEventListener) reduceMotion.addEventListener('change', applyCanvasMode);
+  if (smallScreen && smallScreen.addEventListener) smallScreen.addEventListener('change', applyCanvasMode);
 
   window.addEventListener('scroll', function() {
+    if (isPaused) return;
     targetSY = window.scrollY;
   }, { passive: true });
 
   function draw(ts) {
-    requestAnimationFrame(draw);
+    if (isPaused) {
+      rafId = 0;
+      return;
+    }
+    rafId = requestAnimationFrame(draw);
 
     /* Smooth parallax scroll interpolation */
     scrollY += (targetSY - scrollY) * 0.06;
@@ -157,7 +199,6 @@ window.goHome   = function() { showPage('p-home'); };
     ctx.fillRect(0, 0, W, H);
   }
 
-  requestAnimationFrame(draw);
 })();
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -168,6 +209,10 @@ var masonryEl   = document.getElementById('masonry');
 var heroBgEl    = document.getElementById('hero-bg');
 var heroTopbar  = document.querySelector('.hero-topbar');
 var progressBar = document.getElementById('scroll-progress');
+var mediaReduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+var mediaMobile = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+var lastScrollY = window.scrollY || 0;
+var scrollTicking = false;
 
 /* Cache masonry blocks once for perf */
 var mbBlocks = masonryEl ? Array.from(masonryEl.querySelectorAll('.mb')) : [];
@@ -183,7 +228,8 @@ var mbTargets = [
 ];
 
 function onScroll() {
-  var y = window.scrollY;
+  scrollTicking = false;
+  var y = lastScrollY;
 
   /* ── Scroll progress bar ── */
   if (progressBar) {
@@ -200,7 +246,7 @@ function onScroll() {
 
   var hero = document.getElementById('hero');
   if (!hero) return;
-  var heroH = hero.offsetHeight;
+  var heroH = Math.max(hero.offsetHeight, 1);
 
   /* progress 0→1 over the hero scroll distance */
   var p = Math.min(y / heroH, 1);
@@ -244,32 +290,23 @@ function onScroll() {
   }
 
   /* ── Parallax hero background ── */
-  if (heroBgEl) {
+  if (heroBgEl && !(mediaReduce && mediaReduce.matches) && !(mediaMobile && mediaMobile.matches)) {
     heroBgEl.style.transform = 'translateY(' + y * 0.28 + 'px)';
+  } else if (heroBgEl) {
+    heroBgEl.style.transform = '';
   }
 }
 
-window.addEventListener('scroll', onScroll, { passive: true });
+function requestScrollUpdate() {
+  lastScrollY = window.scrollY || 0;
+  if (scrollTicking) return;
+  scrollTicking = true;
+  requestAnimationFrame(onScroll);
+}
+
+window.addEventListener('scroll', requestScrollUpdate, { passive: true });
 /* Run once on load */
 onScroll();
-
-/* GSAP enhancement for buttery smooth masonry collapse (if available) */
-function setupGSAP() {
-  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
-  gsap.registerPlugin(ScrollTrigger);
-  /* GSAP handles the masonry transform for smoother 60fps interpolation */
-  ScrollTrigger.create({
-    trigger: '#hero',
-    start: 'top top',
-    end: 'bottom top',
-    onUpdate: function(s) {
-      /* Delegate to our onScroll for consistency */
-      onScroll();
-    },
-    scrub: true
-  });
-}
-setTimeout(setupGSAP, 120);
 
 /* ══════════════════════════════════════════════════════════════════════
    4. STAGGER FADE-IN-UP SYSTEM
@@ -360,6 +397,15 @@ function openMob() {
   if (firstLink) firstLink.focus();
 }
 
+function toggleMob() {
+  if (!mobMenu) return;
+  if (mobMenu.classList.contains('open')) {
+    window.closeMob();
+    return;
+  }
+  openMob();
+}
+
 window.closeMob = function() {
   if (!mobMenu) return;
   mobMenu.classList.remove('open');
@@ -372,7 +418,7 @@ window.closeMob = function() {
   if (mobOverlay) mobOverlay.style.display = 'none';
 };
 
-if (burger)     burger.addEventListener('click', openMob);
+if (burger)     burger.addEventListener('click', toggleMob);
 if (mobClose)   mobClose.addEventListener('click', window.closeMob);
 if (mobOverlay) mobOverlay.addEventListener('click', window.closeMob);
 
