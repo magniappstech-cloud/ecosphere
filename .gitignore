@@ -1,0 +1,11 @@
+.htaccess
+/template
+/wp-admin
+/wp-includes
+/wp-content/languages
+/wp-content/plugins
+/wp-content/upgrade
+/wp-content/uploads
+/wp-content/themes/twentytwentyfive
+/wp-content/themes/twentytwentyfour
+/wp-content/themes/twentytwentythree
