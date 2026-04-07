@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { SiteFooter } from './components/layout/SiteFooter';
+import { SiteHeader } from './components/layout/SiteHeader';
 import { PortalShell } from './components/portal/PortalShell';
 import { getBootstrapData } from './lib/wp';
 
@@ -25,7 +27,7 @@ function NotFoundView() {
         <p className="eyebrow">404</p>
         <h1 className="section-title">Страница не найдена</h1>
         <p className="section-lead">
-          WordPress уже отдает корректный статус, а React показывает единый интерфейс для ошибок и внутренних страниц.
+          WordPress уже отдаёт корректный статус, а React показывает единый интерфейс для ошибок и внутренних страниц.
         </p>
       </div>
     </section>
@@ -44,7 +46,6 @@ const SECTION_MAP = {
 
 export default function App() {
   const [data] = useState(() => getBootstrapData());
-
   const view = SECTION_MAP[data?.current?.template] || 'portal';
 
   if (view === 'portal') {
@@ -52,8 +53,20 @@ export default function App() {
   }
 
   if (view === 'content') {
-    return <ContentView currentPost={data?.current?.post} />;
+    return (
+      <>
+        <SiteHeader site={data?.site} navigation={data?.navigation} />
+        <ContentView currentPost={data?.current?.post} />
+        <SiteFooter site={data?.site} navigation={data?.navigation} />
+      </>
+    );
   }
 
-  return <NotFoundView />;
+  return (
+    <>
+      <SiteHeader site={data?.site} navigation={data?.navigation} />
+      <NotFoundView />
+      <SiteFooter site={data?.site} navigation={data?.navigation} />
+    </>
+  );
 }

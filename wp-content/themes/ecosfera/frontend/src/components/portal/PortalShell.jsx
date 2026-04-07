@@ -180,6 +180,7 @@ export function PortalShell({ data }) {
         changePage={changePage}
         mobileOpen={mobileOpen}
         navScrolled={navScrolled}
+        navigation={data?.navigation}
         pageLabels={PAGE_LABELS}
         openMobileMenu={() => setMobileOpen(true)}
       />
@@ -187,6 +188,7 @@ export function PortalShell({ data }) {
         activePage={activePage}
         changePage={changePage}
         mobileOpen={mobileOpen}
+        navigation={data?.navigation}
         pageLabels={PAGE_LABELS}
         closeMobileMenu={() => setMobileOpen(false)}
       />

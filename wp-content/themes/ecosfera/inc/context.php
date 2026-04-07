@@ -30,6 +30,19 @@ function ecosfera_menu_tree(string $location): array
     );
 }
 
+function ecosfera_resolve_menu(array $locations): array
+{
+    foreach ($locations as $location) {
+        $items = ecosfera_menu_tree($location);
+
+        if ($items !== []) {
+            return $items;
+        }
+    }
+
+    return [];
+}
+
 function ecosfera_format_post(WP_Post $post): array
 {
     return [
@@ -73,8 +86,12 @@ function ecosfera_build_frontend_context(): array
             'language' => determine_locale(),
         ],
         'navigation' => [
-            'primary' => ecosfera_menu_tree('primary'),
-            'footer' => ecosfera_menu_tree('footer'),
+            'headerPrimary' => ecosfera_resolve_menu(['header_primary', 'primary']),
+            'footerPlatform' => ecosfera_resolve_menu(['footer_platform', 'footer']),
+            'footerCommunity' => ecosfera_resolve_menu(['footer_community']),
+            'footerResources' => ecosfera_resolve_menu(['footer_resources']),
+            'primary' => ecosfera_resolve_menu(['header_primary', 'primary']),
+            'footer' => ecosfera_resolve_menu(['footer_platform', 'footer']),
         ],
         'current' => [
             'template' => is_front_page() ? 'front-page' : (

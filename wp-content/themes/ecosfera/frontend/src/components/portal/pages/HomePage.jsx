@@ -1,3 +1,5 @@
+import { getTopLevelMenu, resolvePortalPageId } from '@/lib/navigation';
+
 function MetricCard({ value, label, icon, delay }) {
   return (
     <div className="metric reveal" style={{ transitionDelay: delay }}>
@@ -31,6 +33,27 @@ export function HomePage({ data, changePage }) {
   const posts = data?.collections?.posts || [];
   const initiatives = data?.collections?.initiatives || [];
   const pages = data?.collections?.pages || [];
+  const footerPlatformMenu = getTopLevelMenu(data?.navigation?.footerPlatform || data?.navigation?.footer || []);
+  const footerCommunityMenu = getTopLevelMenu(data?.navigation?.footerCommunity || []);
+  const footerResourcesMenu = getTopLevelMenu(data?.navigation?.footerResources || []);
+
+  const renderFooterItem = (item) => {
+    const pageId = resolvePortalPageId(item.url);
+
+    if (pageId) {
+      return (
+        <button type="button" onClick={() => changePage(pageId)}>
+          {item.title}
+        </button>
+      );
+    }
+
+    return (
+      <a href={item.url} target={item.target || '_self'} rel={item.target === '_blank' ? 'noreferrer' : undefined}>
+        {item.title}
+      </a>
+    );
+  };
 
   const metrics = [
     {
@@ -240,28 +263,25 @@ export function HomePage({ data, changePage }) {
             <nav className="footer-col" aria-label="Навигация: платформа">
               <div className="footer-col-h">Платформа</div>
               <ul>
-                <li><button type="button" onClick={() => changePage('art')}>Искусство</button></li>
-                <li><button type="button" onClick={() => changePage('projects')}>Проекты</button></li>
-                <li><button type="button" onClick={() => changePage('news')}>Новости</button></li>
-                <li><a href="#charity">Благотворительность</a></li>
+                {footerPlatformMenu.map((item) => (
+                  <li key={item.id}>{renderFooterItem(item)}</li>
+                ))}
               </ul>
             </nav>
             <nav className="footer-col" aria-label="Навигация: сообщество">
               <div className="footer-col-h">Сообщество</div>
               <ul>
-                <li><a href="#volunteers">Волонтёры</a></li>
-                <li><button type="button" onClick={() => changePage('initiative')}>Инициативы</button></li>
-                <li><a href="#leaders">Лидеры</a></li>
-                <li><a href="#about">О проекте</a></li>
+                {footerCommunityMenu.map((item) => (
+                  <li key={item.id}>{renderFooterItem(item)}</li>
+                ))}
               </ul>
             </nav>
             <nav className="footer-col" aria-label="Навигация: ресурсы">
               <div className="footer-col-h">Ресурсы</div>
               <ul>
-                <li><a href="#docs">База документов</a></li>
-                <li><a href="#iso">ISO-справочник</a></li>
-                <li><a href="#api">API</a></li>
-                <li><a href="#help">Помощь</a></li>
+                {footerResourcesMenu.map((item) => (
+                  <li key={item.id}>{renderFooterItem(item)}</li>
+                ))}
               </ul>
             </nav>
           </div>

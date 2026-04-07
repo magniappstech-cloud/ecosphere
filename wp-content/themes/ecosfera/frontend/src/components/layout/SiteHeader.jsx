@@ -1,6 +1,10 @@
+import { getTopLevelMenu } from '@/lib/navigation';
+
 export function SiteHeader({ site, navigation }) {
-  const menu = navigation?.length
-    ? navigation
+  const menu = navigation?.headerPrimary?.length
+    ? navigation.headerPrimary
+    : navigation?.primary?.length
+    ? navigation.primary
     : [
         { id: 'home', title: 'Главная', url: '/' },
         { id: 'projects', title: 'Проекты', url: '/projects/' },
@@ -19,13 +23,11 @@ export function SiteHeader({ site, navigation }) {
           </span>
         </a>
         <nav className="main-nav" aria-label="Основная навигация">
-          {menu
-            .filter((item) => !item.parent)
-            .map((item) => (
-              <a key={item.id} href={item.url} target={item.target || '_self'} rel={item.target === '_blank' ? 'noreferrer' : undefined}>
-                {item.title}
-              </a>
-            ))}
+          {getTopLevelMenu(menu).map((item) => (
+            <a key={item.id} href={item.url} target={item.target || '_self'} rel={item.target === '_blank' ? 'noreferrer' : undefined}>
+              {item.title}
+            </a>
+          ))}
         </nav>
       </div>
     </header>

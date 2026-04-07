@@ -23,11 +23,14 @@ function ecosfera_theme_setup(): void
 
     register_nav_menus(
         [
-            'primary' => __('Primary menu', 'ecosfera'),
-            'footer' => __('Footer menu', 'ecosfera'),
+            'header_primary' => __('Header primary menu', 'ecosfera'),
+            'primary' => __('Primary menu (legacy)', 'ecosfera'),
+            'footer_platform' => __('Footer platform menu', 'ecosfera'),
+            'footer_community' => __('Footer community menu', 'ecosfera'),
+            'footer_resources' => __('Footer resources menu', 'ecosfera'),
+            'footer' => __('Footer menu (legacy)', 'ecosfera'),
         ]
     );
 }
 
 add_action('after_setup_theme', 'ecosfera_theme_setup');
-

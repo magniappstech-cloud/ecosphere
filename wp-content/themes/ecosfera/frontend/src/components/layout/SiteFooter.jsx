@@ -1,4 +1,10 @@
+import { getTopLevelMenu } from '@/lib/navigation';
+
 export function SiteFooter({ site, navigation }) {
+  const platformMenu = getTopLevelMenu(navigation?.footerPlatform || navigation?.footer || []);
+  const communityMenu = getTopLevelMenu(navigation?.footerCommunity || []);
+  const resourcesMenu = getTopLevelMenu(navigation?.footerResources || []);
+
   return (
     <footer className="site-footer">
       <div className="container footer-grid">
@@ -10,9 +16,29 @@ export function SiteFooter({ site, navigation }) {
           </p>
         </div>
         <div>
-          <p className="eyebrow">Навигация</p>
+          <p className="eyebrow">Платформа</p>
           <div className="footer-links">
-            {(navigation?.length ? navigation : []).filter((item) => !item.parent).map((item) => (
+            {platformMenu.map((item) => (
+              <a key={item.id} href={item.url}>
+                {item.title}
+              </a>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="eyebrow">Сообщество</p>
+          <div className="footer-links">
+            {communityMenu.map((item) => (
+              <a key={item.id} href={item.url}>
+                {item.title}
+              </a>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="eyebrow">Ресурсы</p>
+          <div className="footer-links">
+            {resourcesMenu.map((item) => (
               <a key={item.id} href={item.url}>
                 {item.title}
               </a>
