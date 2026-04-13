@@ -27,6 +27,8 @@ function ecosfera_enqueue_theme_assets(): void
     if ($dev_server) {
         wp_enqueue_script('ecosfera-vite-client', untrailingslashit($dev_server) . '/@vite/client', [], null, true);
         wp_enqueue_script('ecosfera-app', untrailingslashit($dev_server) . '/src/main.jsx', [], null, true);
+        wp_script_add_data('ecosfera-vite-client', 'type', 'module');
+        wp_script_add_data('ecosfera-app', 'type', 'module');
     } else {
         if (isset($manifest['src/main.jsx']['file'])) {
             $entry = $manifest['src/main.jsx'];
@@ -49,6 +51,7 @@ function ecosfera_enqueue_theme_assets(): void
                 $theme_version,
                 true
             );
+            wp_script_add_data('ecosfera-app', 'type', 'module');
         } else {
             wp_enqueue_style(
                 'ecosfera-theme',

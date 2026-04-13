@@ -2,10 +2,10 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react()],
   root: path.resolve(__dirname, 'frontend'),
-  base: '/wp-content/themes/ecosfera/assets/build/',
+  base: command === 'serve' ? '/' : '/wp-content/themes/ecosfera/assets/build/',
   build: {
     outDir: path.resolve(__dirname, 'assets/build'),
     emptyOutDir: true,
@@ -15,6 +15,7 @@ export default defineConfig({
     },
   },
   server: {
+    cors: true,
     port: 5173,
     strictPort: true,
     origin: 'http://localhost:5173',
@@ -24,5 +25,4 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'frontend/src'),
     },
   },
-});
-
+}));

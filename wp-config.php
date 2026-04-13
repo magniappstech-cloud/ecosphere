@@ -21,15 +21,19 @@
 // ** Database settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
 define( 'DB_NAME', 'ecosphere' );
+//define( 'DB_NAME', 'klim14ah_ecos' );
 
 /** Database username */
 define( 'DB_USER', 'root' );
+//define( 'DB_USER', 'klim14ah_ecos' );
 
 /** Database password */
 define( 'DB_PASSWORD', 'root' );
+//define( 'DB_PASSWORD', '666777888qwe!' );
 
 /** Database hostname */
 define( 'DB_HOST', 'localhost' );
+//define( 'DB_HOST', 'klim14ah.beget.tech' );
 
 /** Database charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8mb4' );
@@ -89,7 +93,9 @@ define( 'WP_DEBUG', false );
 
 /* Add any custom values between this line and the "stop editing" line. */
 
-
+define('WP_HOME', 'http://ecosphere');
+define('WP_SITEURL', 'http://ecosphere');
+//define('ECOSFERA_VITE_DEV_SERVER', 'http://localhost:5173');
 
 /* That's all, stop editing! Happy publishing. */
 

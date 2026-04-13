@@ -165,7 +165,7 @@ export function PortalShell({ data }) {
 
   const pages = [
     { id: 'home', element: <HomePage data={data} changePage={changePage} /> },
-    { id: 'art', element: <ArtPage openLightbox={setLightboxImage} /> },
+    { id: 'art', element: <ArtPage data={data} openLightbox={setLightboxImage} /> },
     { id: 'projects', element: <ProjectsPage data={data} /> },
     { id: 'news', element: <NewsPage /> },
     { id: 'initiative', element: <InitiativePage data={data} /> },

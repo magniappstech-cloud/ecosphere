@@ -14,6 +14,9 @@ export function getBootstrapData() {
       projects: [],
       initiatives: [],
       art: [],
+      artAudio: [],
+      artVideos: [],
+      artStories: [],
       pages: [],
     },
     current: {

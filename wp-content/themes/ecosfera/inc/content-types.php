@@ -52,6 +52,54 @@ function ecosfera_register_content_types(): void
         ]
     );
 
+    register_post_type(
+        'art_audio',
+        [
+            'labels' => [
+                'name' => __('Audio tracks', 'ecosfera'),
+                'singular_name' => __('Audio track', 'ecosfera'),
+            ],
+            'public' => true,
+            'show_in_rest' => true,
+            'menu_icon' => 'dashicons-format-audio',
+            'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'revisions'],
+            'has_archive' => true,
+            'rewrite' => ['slug' => 'art-audio'],
+        ]
+    );
+
+    register_post_type(
+        'art_video',
+        [
+            'labels' => [
+                'name' => __('Video library', 'ecosfera'),
+                'singular_name' => __('Video item', 'ecosfera'),
+            ],
+            'public' => true,
+            'show_in_rest' => true,
+            'menu_icon' => 'dashicons-video-alt3',
+            'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'revisions'],
+            'has_archive' => true,
+            'rewrite' => ['slug' => 'art-video'],
+        ]
+    );
+
+    register_post_type(
+        'art_story',
+        [
+            'labels' => [
+                'name' => __('Art stories', 'ecosfera'),
+                'singular_name' => __('Art story', 'ecosfera'),
+            ],
+            'public' => true,
+            'show_in_rest' => true,
+            'menu_icon' => 'dashicons-book-alt',
+            'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'revisions'],
+            'has_archive' => true,
+            'rewrite' => ['slug' => 'art-stories'],
+        ]
+    );
+
     register_taxonomy(
         'project_country',
         ['project'],
@@ -69,7 +117,7 @@ function ecosfera_register_content_types(): void
 
     register_taxonomy(
         'ecosfera_topic',
-        ['post', 'project', 'initiative', 'artwork'],
+        ['post', 'project', 'initiative', 'artwork', 'art_audio', 'art_video', 'art_story'],
         [
             'labels' => [
                 'name' => __('Topics', 'ecosfera'),
@@ -84,4 +132,3 @@ function ecosfera_register_content_types(): void
 }
 
 add_action('init', 'ecosfera_register_content_types');
-
