@@ -11,6 +11,7 @@ export function getBootstrapData() {
     },
     collections: {
       posts: [],
+      articles: [],
       projects: [],
       initiatives: [],
       art: [],
@@ -23,8 +24,15 @@ export function getBootstrapData() {
       template: 'front-page',
       post: null,
     },
+    user: {
+      loggedIn: false,
+      id: 0,
+      displayName: '',
+    },
     rest: {
       bootstrap: '',
+      articleSubmission: '',
+      nonce: '',
     },
   };
 }

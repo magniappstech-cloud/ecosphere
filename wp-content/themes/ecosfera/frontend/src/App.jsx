@@ -1,8 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SiteFooter } from './components/layout/SiteFooter';
 import { SiteHeader } from './components/layout/SiteHeader';
 import { PortalShell } from './components/portal/PortalShell';
+import { PortalFooter } from './components/portal/PortalFooter';
+import { PortalHeader } from './components/portal/PortalHeader';
+import { PortalMobileMenu } from './components/portal/PortalMobileMenu';
+import { ArticleDetailPage } from './components/portal/pages/ArticleDetailPage';
 import { getBootstrapData } from './lib/wp';
+
+const PORTAL_PAGE_LABELS = {
+  home: 'Главная',
+  art: 'Искусство',
+  articles: 'Статьи',
+  projects: 'Проекты',
+  news: 'Новости',
+  initiative: 'Инициатива',
+  register: 'Регистрация',
+};
 
 function ContentView({ currentPost }) {
   return (
@@ -34,6 +48,75 @@ function NotFoundView() {
   );
 }
 
+function PortalArticleView({ data }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [navScrolled, setNavScrolled] = useState(false);
+
+  const changePage = (pageId) => {
+    window.location.href = `${data?.site?.url || '/'}#${pageId}`;
+  };
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('mob-open');
+      document.body.style.overflow = '';
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const onScroll = () => {
+      setNavScrolled(window.scrollY > 10);
+    };
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return undefined;
+    }
+
+    document.body.classList.toggle('mob-open', mobileOpen);
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+
+    return () => {
+      document.body.classList.remove('mob-open');
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
+
+  return (
+    <>
+      <PortalHeader
+        activePage="articles"
+        changePage={changePage}
+        mobileOpen={mobileOpen}
+        navScrolled={navScrolled}
+        navigation={data?.navigation}
+        pageLabels={PORTAL_PAGE_LABELS}
+        openMobileMenu={() => setMobileOpen(true)}
+      />
+      <PortalMobileMenu
+        activePage="articles"
+        changePage={changePage}
+        mobileOpen={mobileOpen}
+        navigation={data?.navigation}
+        pageLabels={PORTAL_PAGE_LABELS}
+        closeMobileMenu={() => setMobileOpen(false)}
+      />
+      <ArticleDetailPage article={data?.current?.post} />
+      <PortalFooter data={data} changePage={changePage} />
+    </>
+  );
+}
+
 const SECTION_MAP = {
   'front-page': 'portal',
   home: 'portal',
@@ -53,6 +136,10 @@ export default function App() {
   }
 
   if (view === 'content') {
+    if (data?.current?.post?.type === 'article') {
+      return <PortalArticleView data={data} />;
+    }
+
     return (
       <>
         <SiteHeader site={data?.site} navigation={data?.navigation} />

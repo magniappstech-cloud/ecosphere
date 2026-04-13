@@ -166,10 +166,23 @@ function ecosfera_get_oembed_html(string $url): string
     return is_string($embed) ? $embed : '';
 }
 
+function ecosfera_get_author_name(int $author_id): string
+{
+    return ecosfera_decode_text((string) get_the_author_meta('display_name', $author_id));
+}
+
+function ecosfera_get_reading_time(WP_Post $post): int
+{
+    $words = str_word_count(wp_strip_all_tags($post->post_content));
+
+    return max(1, (int) ceil($words / 200));
+}
+
 function ecosfera_format_post(WP_Post $post): array
 {
     $status = ecosfera_normalize_choice_field('status', $post->ID);
     $format = ecosfera_normalize_choice_field('format', $post->ID);
+    $topics = wp_get_post_terms($post->ID, 'ecosfera_topic', ['fields' => 'names']);
 
     return [
         'id' => (int) $post->ID,
@@ -180,7 +193,11 @@ function ecosfera_format_post(WP_Post $post): array
         'slug' => $post->post_name,
         'url' => get_permalink($post),
         'date' => get_the_date('c', $post),
+        'dateDisplay' => ecosfera_decode_text(get_the_date('', $post)),
         'featuredImage' => get_the_post_thumbnail_url($post, 'large') ?: '',
+        'authorName' => ecosfera_get_author_name((int) $post->post_author),
+        'readingTime' => ecosfera_get_reading_time($post),
+        'topics' => is_array($topics) ? array_map('ecosfera_decode_text', $topics) : [],
         'status' => $status['value'],
         'statusLabel' => $status['label'],
         'format' => $format['value'],
@@ -288,6 +305,7 @@ function ecosfera_build_frontend_context(): array
         ],
         'collections' => [
             'posts' => ecosfera_query_posts('post', 'ecosfera_format_post'),
+            'articles' => ecosfera_query_posts('article', 'ecosfera_format_post', 24),
             'projects' => ecosfera_query_posts('project', 'ecosfera_format_post'),
             'initiatives' => ecosfera_query_posts('initiative', 'ecosfera_format_post'),
             'art' => ecosfera_query_posts('artwork', 'ecosfera_format_post', 24),
@@ -296,10 +314,16 @@ function ecosfera_build_frontend_context(): array
             'artStories' => ecosfera_query_posts('art_story', 'ecosfera_format_story_post', 24),
             'pages' => ecosfera_query_posts('page', 'ecosfera_format_post', 8),
         ],
+        'user' => [
+            'loggedIn' => is_user_logged_in(),
+            'id' => get_current_user_id(),
+            'displayName' => is_user_logged_in() ? ecosfera_get_author_name(get_current_user_id()) : '',
+        ],
         'rest' => [
             'root' => esc_url_raw(rest_url()),
             'nonce' => wp_create_nonce('wp_rest'),
             'bootstrap' => esc_url_raw(rest_url('ecosfera/v1/bootstrap')),
+            'articleSubmission' => esc_url_raw(rest_url('ecosfera/v1/article-submissions')),
         ],
     ];
 }

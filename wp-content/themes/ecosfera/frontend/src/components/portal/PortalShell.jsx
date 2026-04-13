@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { pageIds } from '@/data/portalData';
 import { PortalHeader } from './PortalHeader';
 import { PortalMobileMenu } from './PortalMobileMenu';
+import { PortalFooter } from './PortalFooter';
 import { HomePage } from './pages/HomePage';
 import { ArtPage } from './pages/ArtPage';
 import { ProjectsPage } from './pages/ProjectsPage';
@@ -9,6 +10,8 @@ import { NewsPage } from './pages/NewsPage';
 import { InitiativePage } from './pages/InitiativePage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ArticlesPage } from './pages/ArticlesPage';
+
+const PORTAL_PAGE_STORAGE_KEY = 'ecosfera-active-page';
 
 const PAGE_LABELS = {
   home: 'Главная',
@@ -26,6 +29,34 @@ export function PortalShell({ data }) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [navScrolled, setNavScrolled] = useState(false);
   const [lightboxImage, setLightboxImage] = useState('');
+
+  useEffect(() => {
+    const syncPageWithHash = () => {
+      const hash = window.location.hash.replace(/^#/, '').toLowerCase();
+
+      if (pageIds.includes(hash)) {
+        setActivePage(hash);
+        window.sessionStorage.setItem(PORTAL_PAGE_STORAGE_KEY, hash);
+        return;
+      }
+
+      const savedPage = window.sessionStorage.getItem(PORTAL_PAGE_STORAGE_KEY)?.toLowerCase();
+
+      if (savedPage && pageIds.includes(savedPage)) {
+        setActivePage(savedPage);
+        window.location.hash = savedPage;
+        return;
+      }
+
+      setActivePage('home');
+      window.sessionStorage.setItem(PORTAL_PAGE_STORAGE_KEY, 'home');
+    };
+
+    syncPageWithHash();
+    window.addEventListener('hashchange', syncPageWithHash);
+
+    return () => window.removeEventListener('hashchange', syncPageWithHash);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -160,6 +191,8 @@ export function PortalShell({ data }) {
   const changePage = (pageId) => {
     setActivePage(pageId);
     setMobileOpen(false);
+    window.sessionStorage.setItem(PORTAL_PAGE_STORAGE_KEY, pageId);
+    window.location.hash = pageId === 'home' ? 'home' : pageId;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -170,7 +203,7 @@ export function PortalShell({ data }) {
     { id: 'news', element: <NewsPage /> },
     { id: 'initiative', element: <InitiativePage data={data} /> },
     { id: 'register', element: <RegisterPage data={data} /> },
-    { id: 'articles', element: <ArticlesPage /> },
+    { id: 'articles', element: <ArticlesPage data={data} /> },
   ];
 
   return (
@@ -196,6 +229,7 @@ export function PortalShell({ data }) {
       {pages.map((page) => (
         <div key={page.id} className={`page${activePage === page.id ? ' active' : ''}`} id={`p-${page.id}`}>
           {page.element}
+          <PortalFooter data={data} changePage={changePage} />
         </div>
       ))}
       <div

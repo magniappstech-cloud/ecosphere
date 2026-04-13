@@ -100,6 +100,22 @@ function ecosfera_register_content_types(): void
         ]
     );
 
+    register_post_type(
+        'article',
+        [
+            'labels' => [
+                'name' => __('Articles', 'ecosfera'),
+                'singular_name' => __('Article', 'ecosfera'),
+            ],
+            'public' => true,
+            'show_in_rest' => true,
+            'menu_icon' => 'dashicons-media-document',
+            'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'author', 'revisions'],
+            'has_archive' => true,
+            'rewrite' => ['slug' => 'articles'],
+        ]
+    );
+
     register_taxonomy(
         'project_country',
         ['project'],
@@ -117,7 +133,7 @@ function ecosfera_register_content_types(): void
 
     register_taxonomy(
         'ecosfera_topic',
-        ['post', 'project', 'initiative', 'artwork', 'art_audio', 'art_video', 'art_story'],
+        ['post', 'project', 'initiative', 'artwork', 'art_audio', 'art_video', 'art_story', 'article'],
         [
             'labels' => [
                 'name' => __('Topics', 'ecosfera'),
