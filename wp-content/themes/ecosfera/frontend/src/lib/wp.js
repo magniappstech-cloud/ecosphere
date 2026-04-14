@@ -12,6 +12,7 @@ export function getBootstrapData() {
     collections: {
       posts: [],
       articles: [],
+      news: [],
       projects: [],
       initiatives: [],
       art: [],

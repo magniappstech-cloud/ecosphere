@@ -252,6 +252,19 @@ function ecosfera_format_story_post(WP_Post $post): array
     );
 }
 
+function ecosfera_format_news_post(WP_Post $post): array
+{
+    $base = ecosfera_format_post($post);
+    $categories = wp_get_post_terms($post->ID, 'news_category', ['fields' => 'names']);
+
+    return array_merge(
+        $base,
+        [
+            'newsCategory' => is_array($categories) && $categories !== [] ? ecosfera_decode_text((string) $categories[0]) : 'Новости',
+        ]
+    );
+}
+
 function ecosfera_query_posts(string $post_type, callable $formatter, int $limit = 6): array
 {
     $query = new WP_Query(
@@ -306,6 +319,7 @@ function ecosfera_build_frontend_context(): array
         'collections' => [
             'posts' => ecosfera_query_posts('post', 'ecosfera_format_post'),
             'articles' => ecosfera_query_posts('article', 'ecosfera_format_post', 24),
+            'news' => ecosfera_query_posts('news_item', 'ecosfera_format_news_post', 24),
             'projects' => ecosfera_query_posts('project', 'ecosfera_format_post'),
             'initiatives' => ecosfera_query_posts('initiative', 'ecosfera_format_post'),
             'art' => ecosfera_query_posts('artwork', 'ecosfera_format_post', 24),

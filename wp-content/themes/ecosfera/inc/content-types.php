@@ -116,6 +116,31 @@ function ecosfera_register_content_types(): void
         ]
     );
 
+    register_post_type(
+        'news_item',
+        [
+            'labels' => [
+                'name' => __('News', 'ecosfera'),
+                'singular_name' => __('News item', 'ecosfera'),
+                'menu_name' => __('News', 'ecosfera'),
+                'add_new' => __('Add news item', 'ecosfera'),
+                'add_new_item' => __('Add news item', 'ecosfera'),
+                'edit_item' => __('Edit news item', 'ecosfera'),
+                'new_item' => __('New news item', 'ecosfera'),
+                'view_item' => __('View news item', 'ecosfera'),
+                'search_items' => __('Search news', 'ecosfera'),
+                'not_found' => __('No news found', 'ecosfera'),
+                'not_found_in_trash' => __('No news found in trash', 'ecosfera'),
+            ],
+            'public' => true,
+            'show_in_rest' => true,
+            'menu_icon' => 'dashicons-megaphone',
+            'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'author', 'revisions'],
+            'has_archive' => true,
+            'rewrite' => ['slug' => 'news'],
+        ]
+    );
+
     register_taxonomy(
         'project_country',
         ['project'],
@@ -145,6 +170,41 @@ function ecosfera_register_content_types(): void
             'rewrite' => ['slug' => 'topic'],
         ]
     );
+
+    register_taxonomy(
+        'news_category',
+        ['news_item'],
+        [
+            'labels' => [
+                'name' => __('News categories', 'ecosfera'),
+                'singular_name' => __('News category', 'ecosfera'),
+            ],
+            'public' => true,
+            'show_in_rest' => true,
+            'hierarchical' => true,
+            'rewrite' => ['slug' => 'news-category'],
+        ]
+    );
 }
 
 add_action('init', 'ecosfera_register_content_types');
+
+function ecosfera_seed_news_categories(): void
+{
+    $categories = [
+        'ecology' => 'Экология',
+        'energy' => 'Энергетика',
+        'science' => 'Наука',
+        'cities' => 'Города',
+        'projects' => 'Проекты',
+        'culture' => 'Культура',
+    ];
+
+    foreach ($categories as $slug => $name) {
+        if (!term_exists($slug, 'news_category')) {
+            wp_insert_term($name, 'news_category', ['slug' => $slug]);
+        }
+    }
+}
+
+add_action('init', 'ecosfera_seed_news_categories', 20);

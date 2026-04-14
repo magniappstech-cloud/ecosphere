@@ -200,7 +200,7 @@ export function PortalShell({ data }) {
     { id: 'home', element: <HomePage data={data} changePage={changePage} /> },
     { id: 'art', element: <ArtPage data={data} openLightbox={setLightboxImage} /> },
     { id: 'projects', element: <ProjectsPage data={data} /> },
-    { id: 'news', element: <NewsPage /> },
+    { id: 'news', element: <NewsPage data={data} /> },
     { id: 'initiative', element: <InitiativePage data={data} /> },
     { id: 'register', element: <RegisterPage data={data} /> },
     { id: 'articles', element: <ArticlesPage data={data} /> },
