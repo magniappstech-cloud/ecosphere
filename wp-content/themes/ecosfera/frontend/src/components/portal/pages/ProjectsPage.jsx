@@ -17,8 +17,8 @@ export function ProjectsPage({ data }) {
   const visibleProjects = projects.length
     ? projects
     : [
-      {
-        id: 1,
+        {
+          id: 1,
           title: 'Безопасный район',
           excerpt: 'Локальные сценарии оценки рисков городской среды.',
           featuredImage: '',
@@ -26,6 +26,7 @@ export function ProjectsPage({ data }) {
           statusLabel: 'В работе',
           format: 'initiative',
           formatLabel: 'Инициатива',
+          url: '#',
         },
         {
           id: 2,
@@ -36,6 +37,7 @@ export function ProjectsPage({ data }) {
           statusLabel: 'Завершён',
           format: 'research',
           formatLabel: 'Исследование',
+          url: '#',
         },
         {
           id: 3,
@@ -46,9 +48,10 @@ export function ProjectsPage({ data }) {
           statusLabel: 'В работе',
           format: 'initiative',
           formatLabel: 'Инициатива',
+          url: '#',
         },
       ];
-  console.log(projects)
+
   return (
     <div className="page-inner-pad">
       <section
@@ -75,7 +78,7 @@ export function ProjectsPage({ data }) {
               const formatLabel = project.formatLabel || project.format || 'Инициатива';
 
               return (
-                <article key={project.id} className="project-card">
+                <a key={project.id} className="project-card" href={project.url || '#'}>
                   <div
                     className="project-card-img"
                     style={{
@@ -94,7 +97,7 @@ export function ProjectsPage({ data }) {
                       <span>Формат: {formatLabel}</span>
                     </div>
                   </div>
-                </article>
+                </a>
               );
             })}
           </div>
