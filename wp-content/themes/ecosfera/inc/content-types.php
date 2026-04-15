@@ -30,7 +30,7 @@ function ecosfera_register_content_types(): void
             'public' => true,
             'show_in_rest' => true,
             'menu_icon' => 'dashicons-megaphone',
-            'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'revisions'],
+            'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'author', 'revisions'],
             'has_archive' => true,
             'rewrite' => ['slug' => 'initiatives'],
         ]
@@ -208,3 +208,28 @@ function ecosfera_seed_news_categories(): void
 }
 
 add_action('init', 'ecosfera_seed_news_categories', 20);
+
+function ecosfera_add_initiative_author_column(array $columns): array
+{
+    if (isset($columns['author'])) {
+        return $columns;
+    }
+
+    $updated = [];
+
+    foreach ($columns as $key => $label) {
+        if ($key === 'date') {
+            $updated['author'] = __('Author', 'ecosfera');
+        }
+
+        $updated[$key] = $label;
+    }
+
+    if (!isset($updated['author'])) {
+        $updated['author'] = __('Author', 'ecosfera');
+    }
+
+    return $updated;
+}
+
+add_filter('manage_initiative_posts_columns', 'ecosfera_add_initiative_author_column');

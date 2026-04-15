@@ -338,6 +338,7 @@ function ecosfera_build_frontend_context(): array
             'nonce' => wp_create_nonce('wp_rest'),
             'bootstrap' => esc_url_raw(rest_url('ecosfera/v1/bootstrap')),
             'articleSubmission' => esc_url_raw(rest_url('ecosfera/v1/article-submissions')),
+            'initiativeSubmission' => esc_url_raw(rest_url('ecosfera/v1/initiative-submissions')),
         ],
     ];
 }
