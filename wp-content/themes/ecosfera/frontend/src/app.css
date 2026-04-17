@@ -532,6 +532,49 @@
   accent-color: var(--c-green);
 }
 
+#leaders .sec-h2.stagger-item.stagger-item--in{
+  color: var(--text);
+}
+.art-card__body h3{
+  color: var(--text-dim);
+}
+#art-view-list .art-card{
+  border-color: var(--accent);
+}
+.art-load-more .btn-secondary{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+  min-height: 56px;
+  padding: 14px 24px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: var(--c-green);
+  color: var(--c-bg);
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 8px 28px rgba(42, 245, 152, 0.22);
+  transition:
+    background var(--dur-sm) var(--ease),
+    transform var(--dur-sm) var(--ease),
+    box-shadow var(--dur-sm) var(--ease);
+}
+
+.art-load-more .btn-secondary:hover{
+  background: var(--c-green-h);
+  color: var(--c-bg);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(42, 245, 152, 0.32);
+}
+
+.art-author .art-author__name{
+  color: var(--text-dim);
+}
+#p-news .np-bottom-card h3{
+  color: #263c35;
+}
 @media (max-width: 768px) {
   .cgal-slide img,
   .art-card img {
