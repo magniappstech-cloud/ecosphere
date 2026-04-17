@@ -178,6 +178,57 @@ function ecosfera_get_reading_time(WP_Post $post): int
     return max(1, (int) ceil($words / 200));
 }
 
+function ecosfera_get_project_country_name(int $post_id): string
+{
+    $terms = wp_get_post_terms($post_id, 'project_country', ['fields' => 'names']);
+
+    if (is_array($terms) && $terms !== []) {
+        return ecosfera_decode_text((string) $terms[0]);
+    }
+
+    $acf_country = ecosfera_get_text_field('country', $post_id);
+
+    if ($acf_country !== '') {
+        return $acf_country;
+    }
+
+    $meta_country = ecosfera_decode_text(trim((string) get_post_meta($post_id, 'country', true)));
+
+    if ($meta_country !== '') {
+        return $meta_country;
+    }
+
+    return 'Россия';
+}
+
+function ecosfera_get_site_stats(): array
+{
+    $users = count_users();
+    $projects_query = new WP_Query(
+        [
+            'post_type' => 'project',
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            'fields' => 'ids',
+            'no_found_rows' => true,
+        ]
+    );
+
+    $project_ids = array_map('intval', $projects_query->posts);
+    $countries = [];
+
+    foreach ($project_ids as $project_id) {
+        $country_name = ecosfera_get_project_country_name($project_id);
+        $countries[mb_strtolower($country_name)] = $country_name;
+    }
+
+    return [
+        'participants' => (int) ($users['total_users'] ?? 0),
+        'projects' => count($project_ids),
+        'countries' => count($countries),
+    ];
+}
+
 function ecosfera_format_post(WP_Post $post): array
 {
     $status = ecosfera_normalize_choice_field('status', $post->ID);
@@ -294,6 +345,7 @@ function ecosfera_build_frontend_context(): array
             'url' => home_url('/'),
             'language' => determine_locale(),
         ],
+        'stats' => ecosfera_get_site_stats(),
         'navigation' => [
             'headerPrimary' => ecosfera_resolve_menu(['header_primary', 'primary']),
             'footerPlatform' => ecosfera_resolve_menu(['footer_platform', 'footer']),
@@ -332,6 +384,11 @@ function ecosfera_build_frontend_context(): array
             'loggedIn' => is_user_logged_in(),
             'id' => get_current_user_id(),
             'displayName' => is_user_logged_in() ? ecosfera_get_author_name(get_current_user_id()) : '',
+            'email' => is_user_logged_in() ? ecosfera_decode_text((string) wp_get_current_user()->user_email) : '',
+            'firstName' => is_user_logged_in() ? ecosfera_decode_text((string) get_user_meta(get_current_user_id(), 'first_name', true)) : '',
+            'lastName' => is_user_logged_in() ? ecosfera_decode_text((string) get_user_meta(get_current_user_id(), 'last_name', true)) : '',
+            'newsletter' => is_user_logged_in() ? get_user_meta(get_current_user_id(), 'ecosfera_newsletter_subscribed', true) === '1' : false,
+            'isAdmin' => is_user_logged_in() ? current_user_can('manage_options') : false,
         ],
         'rest' => [
             'root' => esc_url_raw(rest_url()),
@@ -339,6 +396,10 @@ function ecosfera_build_frontend_context(): array
             'bootstrap' => esc_url_raw(rest_url('ecosfera/v1/bootstrap')),
             'articleSubmission' => esc_url_raw(rest_url('ecosfera/v1/article-submissions')),
             'initiativeSubmission' => esc_url_raw(rest_url('ecosfera/v1/initiative-submissions')),
+            'registerUser' => esc_url_raw(rest_url('ecosfera/v1/register-user')),
+            'loginUser' => esc_url_raw(rest_url('ecosfera/v1/login-user')),
+            'logoutUser' => esc_url_raw(rest_url('ecosfera/v1/logout-user')),
+            'updateProfile' => esc_url_raw(rest_url('ecosfera/v1/update-profile')),
         ],
     ];
 }

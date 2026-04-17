@@ -34,3 +34,26 @@ function ecosfera_theme_setup(): void
 }
 
 add_action('after_setup_theme', 'ecosfera_theme_setup');
+
+function ecosfera_hide_admin_bar_for_non_admins(): bool
+{
+    return current_user_can('manage_options');
+}
+
+add_filter('show_admin_bar', 'ecosfera_hide_admin_bar_for_non_admins');
+
+function ecosfera_block_wp_admin_for_non_admins(): void
+{
+    if (!is_user_logged_in()) {
+        return;
+    }
+
+    if (current_user_can('manage_options') || wp_doing_ajax()) {
+        return;
+    }
+
+    wp_safe_redirect(home_url('/'));
+    exit;
+}
+
+add_action('admin_init', 'ecosfera_block_wp_admin_for_non_admins');

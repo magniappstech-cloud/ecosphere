@@ -1,9 +1,5 @@
 import { useState } from 'react';
 
-function buildLoginUrl(siteUrl) {
-  return `${siteUrl || '/'}#login`;
-}
-
 function buildPortalPageUrl(siteUrl, pageId) {
   return `${siteUrl || '/'}#${pageId}`;
 }
@@ -11,44 +7,28 @@ function buildPortalPageUrl(siteUrl, pageId) {
 function validateForm(form) {
   const nextInvalidFields = {};
 
-  if (!form.fullName.trim()) {
-    nextInvalidFields.fullName = 'Укажите имя и фамилию.';
-  }
-
-  if (!form.email.trim()) {
-    nextInvalidFields.email = 'Укажите email.';
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    nextInvalidFields.email = 'Введите корректный email.';
+  if (!form.login.trim()) {
+    nextInvalidFields.login = 'Укажите email.';
   }
 
   if (!form.password) {
     nextInvalidFields.password = 'Укажите пароль.';
-  } else if (form.password.length < 8) {
-    nextInvalidFields.password = 'Пароль должен содержать минимум 8 символов.';
-  }
-
-  if (!form.confirmPassword) {
-    nextInvalidFields.confirmPassword = 'Подтвердите пароль.';
-  } else if (form.confirmPassword !== form.password) {
-    nextInvalidFields.confirmPassword = 'Пароли не совпадают.';
   }
 
   return nextInvalidFields;
 }
 
-export function RegisterPage({ data }) {
+export function LoginPage({ data }) {
   const users = data?.stats?.participants || 0;
   const countries = data?.stats?.countries || 0;
   const projects = data?.stats?.projects || 0;
   const isLoggedIn = Boolean(data?.user?.loggedIn);
-  const loginUrl = buildLoginUrl(data?.site?.url);
+  const registerUrl = buildPortalPageUrl(data?.site?.url, 'register');
   const accountUrl = buildPortalPageUrl(data?.site?.url, 'account');
   const [form, setForm] = useState({
-    fullName: '',
-    email: '',
+    login: '',
     password: '',
-    confirmPassword: '',
-    newsletter: true,
+    remember: true,
   });
   const [invalidFields, setInvalidFields] = useState({});
   const [submitState, setSubmitState] = useState({
@@ -59,7 +39,7 @@ export function RegisterPage({ data }) {
   const getFieldClassName = (field) => `form-input${invalidFields[field] ? ' form-input--invalid' : ''}`;
 
   const handleChange = (field) => (event) => {
-    const value = field === 'newsletter' ? event.target.checked : event.target.value;
+    const value = field === 'remember' ? event.target.checked : event.target.value;
 
     setForm((current) => ({
       ...current,
@@ -83,7 +63,7 @@ export function RegisterPage({ data }) {
     if (isLoggedIn) {
       setSubmitState({
         status: 'success',
-        message: 'Вы уже авторизованы. Новый аккаунт создавать не нужно.',
+        message: 'Вы уже вошли в аккаунт.',
       });
       return;
     }
@@ -101,11 +81,11 @@ export function RegisterPage({ data }) {
 
     setSubmitState({
       status: 'submitting',
-      message: 'Создаём аккаунт...',
+      message: 'Выполняем вход...',
     });
 
     try {
-      const response = await fetch(data?.rest?.registerUser, {
+      const response = await fetch(data?.rest?.loginUser, {
         method: 'POST',
         credentials: 'same-origin',
         headers: {
@@ -118,21 +98,21 @@ export function RegisterPage({ data }) {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(result?.message || 'Не удалось создать аккаунт.');
+        throw new Error(result?.message || 'Не удалось выполнить вход.');
       }
 
       setSubmitState({
         status: 'success',
-        message: 'Аккаунт создан. Выполняем вход и обновляем страницу...',
+        message: 'Вход выполнен. Обновляем страницу...',
       });
 
       setTimeout(() => {
         window.location.reload();
-      }, 900);
+      }, 700);
     } catch (error) {
       setSubmitState({
         status: 'error',
-        message: error instanceof Error ? error.message : 'Не удалось создать аккаунт.',
+        message: error instanceof Error ? error.message : 'Не удалось выполнить вход.',
       });
     }
   };
@@ -159,7 +139,6 @@ export function RegisterPage({ data }) {
         throw new Error(result?.message || 'Не удалось выйти из аккаунта.');
       }
 
-      window.location.href = loginUrl;
       window.location.reload();
     } catch (error) {
       setSubmitState({
@@ -173,17 +152,16 @@ export function RegisterPage({ data }) {
     <div id="reg-inner" className="reg-inner-grid page-inner-pad">
       <div className="reg-visual">
         <div className="reg-visual-deco" aria-hidden="true">
-          Б
+          В
         </div>
         <div className="reg-visual-tag">Сообщество безопасности</div>
         <h2 className="reg-visual-h">
-          СТАНЬТЕ ЧАСТЬЮ
+          ВЕРНИТЕСЬ В
           <br />
-          СООБЩЕСТВА
+          СООБЩЕСТВО
         </h2>
         <p className="reg-visual-body">
-          Присоединяйтесь к {users.toLocaleString('ru-RU')}+ экспертам, волонтёрам и лидерам, которые строят культуру
-          безопасности будущего.
+          Войдите в аккаунт, чтобы публиковать инициативы, отправлять статьи и работать с материалами платформы.
         </p>
         <div className="reg-visual-stats">
           <div>
@@ -203,9 +181,9 @@ export function RegisterPage({ data }) {
 
       <div className="reg-form-wrap">
         <form className="reg-form-inner" onSubmit={handleSubmit}>
-          <h1 className="reg-form-h">Создать аккаунт</h1>
+          <h1 className="reg-form-h">Войти</h1>
           <p className="reg-form-sub">
-            Уже есть аккаунт? <a href={loginUrl}>Войти</a>
+            Нет аккаунта? <a href={registerUrl}>Зарегистрироваться</a>
           </p>
 
           {isLoggedIn ? (
@@ -225,26 +203,14 @@ export function RegisterPage({ data }) {
           ) : (
             <>
               <div className="form-group">
-                <label className="form-label">Имя и фамилия *</label>
-                <input
-                  className={getFieldClassName('fullName')}
-                  type="text"
-                  placeholder="Александр Петров"
-                  autoComplete="name"
-                  value={form.fullName}
-                  onChange={handleChange('fullName')}
-                />
-              </div>
-
-              <div className="form-group">
                 <label className="form-label">Email *</label>
                 <input
-                  className={getFieldClassName('email')}
+                  className={getFieldClassName('login')}
                   type="email"
                   placeholder="alex@example.com"
                   autoComplete="email"
-                  value={form.email}
-                  onChange={handleChange('email')}
+                  value={form.login}
+                  onChange={handleChange('login')}
                 />
               </div>
 
@@ -253,28 +219,16 @@ export function RegisterPage({ data }) {
                 <input
                   className={getFieldClassName('password')}
                   type="password"
-                  placeholder="Минимум 8 символов"
-                  autoComplete="new-password"
+                  placeholder="Введите пароль"
+                  autoComplete="current-password"
                   value={form.password}
                   onChange={handleChange('password')}
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Подтверждение пароля *</label>
-                <input
-                  className={getFieldClassName('confirmPassword')}
-                  type="password"
-                  placeholder="Повторите пароль"
-                  autoComplete="new-password"
-                  value={form.confirmPassword}
-                  onChange={handleChange('confirmPassword')}
-                />
-              </div>
-
               <label className="checkbox-wrap">
-                <input type="checkbox" checked={form.newsletter} onChange={handleChange('newsletter')} />
-                <span className="checkbox-label">Подписаться на еженедельный дайджест с лучшими материалами платформы</span>
+                <input type="checkbox" checked={form.remember} onChange={handleChange('remember')} />
+                <span className="checkbox-label">Запомнить меня на этом устройстве</span>
               </label>
 
               {submitState.message ? (
@@ -287,7 +241,7 @@ export function RegisterPage({ data }) {
                 style={{ marginTop: 'var(--sp-6)' }}
                 disabled={submitState.status === 'submitting'}
               >
-                {submitState.status === 'submitting' ? 'Создаём аккаунт...' : 'Создать аккаунт →'}
+                {submitState.status === 'submitting' ? 'Входим...' : 'Войти →'}
               </button>
             </>
           )}

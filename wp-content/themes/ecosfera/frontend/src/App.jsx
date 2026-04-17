@@ -18,6 +18,8 @@ const PORTAL_PAGE_LABELS = {
   news: 'Новости',
   initiative: 'Инициатива',
   register: 'Регистрация',
+  login: 'Вход',
+  account: 'Кабинет',
 };
 
 function ContentView({ currentPost }) {

@@ -1,4 +1,4 @@
-const PORTAL_PAGE_IDS = ['home', 'art', 'articles', 'projects', 'news', 'initiative', 'register'];
+const PORTAL_PAGE_IDS = ['home', 'art', 'articles', 'projects', 'news', 'initiative', 'register', 'login', 'account'];
 
 export function getTopLevelMenu(items = []) {
   return items.filter((item) => !item.parent);
@@ -33,4 +33,3 @@ export function resolvePortalPageId(url = '') {
 
   return null;
 }
-

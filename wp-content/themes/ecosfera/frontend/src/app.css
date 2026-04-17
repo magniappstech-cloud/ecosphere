@@ -455,6 +455,12 @@
   line-height: 1.7;
 }
 
+.account-actions {
+  display: grid;
+  gap: var(--sp-4);
+  margin-top: var(--sp-6);
+}
+
 .player__progress-track {
   position: relative;
 }

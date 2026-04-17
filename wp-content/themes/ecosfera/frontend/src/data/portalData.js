@@ -38,4 +38,4 @@ export const articleLibrary = [
   { id: 3, tag: 'safety', title: 'Охрана труда без бюрократии', excerpt: 'Практики, которые снижают сопротивление и увеличивают участие сотрудников.', author: 'Сергей Орехов', role: 'HSE-консультант', date: '18 марта 2026', readingTime: '4 мин', likes: 17, image: 'https://images.unsplash.com/photo-1581092919535-7146ff1a5905?w=1400&q=80', body: ['Люди игнорируют правила не из-за вредности, а потому что правила часто не объясняют реальную выгоду.', 'Чем ближе инструкция к реальному процессу, тем выше шанс, что ее поддержат сами команды.'] },
 ];
 
-export const pageIds = ['home', 'art', 'articles', 'projects', 'news', 'initiative', 'register'];
+export const pageIds = ['home', 'art', 'articles', 'projects', 'news', 'initiative', 'register', 'login', 'account'];

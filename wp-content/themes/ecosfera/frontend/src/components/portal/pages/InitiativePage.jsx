@@ -11,16 +11,12 @@ const CATEGORY_OPTIONS = [
 ];
 
 function buildLoginUrl(siteUrl) {
-  if (typeof window === 'undefined') {
-    return `${siteUrl || '/'}wp-login.php`;
-  }
-
-  return `${siteUrl || '/'}wp-login.php?redirect_to=${encodeURIComponent(window.location.href)}`;
+  return `${siteUrl || '/'}#login`;
 }
 
 export function InitiativePage({ data }) {
   const initiativeCount = data?.collections?.initiatives?.length || 0;
-  const projectCount = data?.collections?.projects?.length || 0;
+  const projectCount = data?.stats?.projects || 0;
   const isLoggedIn = Boolean(data?.user?.loggedIn);
   const loginUrl = buildLoginUrl(data?.site?.url);
   const fileInputRef = useRef(null);
@@ -226,9 +222,9 @@ export function InitiativePage({ data }) {
         <div>
           <div className="init-col-h">Как это работает</div>
           <ul className="init-instructions">
-            <li data-n="1">Заполните обязательные поля. Они сохранятся в запись Initiative и ACF-поля.</li>
+            <li data-n="1">Заполните обязательные поля.</li>
             <li data-n="2">Прикрепите один документ или файл, если он помогает модератору понять идею и её реалистичность.</li>
-            <li data-n="3">После отправки инициатива создаётся в WordPress со статусом pending.</li>
+            <li data-n="3">После отправки инициатива отправляется на модерацию</li>
             <li data-n="4">Администратор увидит автора инициативы и сможет одобрить или доработать запись.</li>
           </ul>
 

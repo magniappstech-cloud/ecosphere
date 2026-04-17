@@ -10,6 +10,8 @@ import { NewsPage } from './pages/NewsPage';
 import { InitiativePage } from './pages/InitiativePage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ArticlesPage } from './pages/ArticlesPage';
+import { LoginPage } from './pages/LoginPage';
+import { AccountPage } from './pages/AccountPage';
 
 const PORTAL_PAGE_STORAGE_KEY = 'ecosfera-active-page';
 
@@ -21,6 +23,8 @@ const PAGE_LABELS = {
   news: 'Новости',
   initiative: 'Инициатива',
   register: 'Регистрация',
+  login: 'Вход',
+  account: 'Кабинет',
 };
 
 export function PortalShell({ data }) {
@@ -203,6 +207,8 @@ export function PortalShell({ data }) {
     { id: 'news', element: <NewsPage data={data} /> },
     { id: 'initiative', element: <InitiativePage data={data} /> },
     { id: 'register', element: <RegisterPage data={data} /> },
+    { id: 'login', element: <LoginPage data={data} /> },
+    { id: 'account', element: <AccountPage data={data} /> },
     { id: 'articles', element: <ArticlesPage data={data} /> },
   ];
 

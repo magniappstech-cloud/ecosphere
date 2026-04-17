@@ -31,11 +31,15 @@ export function HomePage({ data, changePage }) {
   const posts = data?.collections?.posts || [];
   const initiatives = data?.collections?.initiatives || [];
   const pages = data?.collections?.pages || [];
+  const stats = data?.stats || {};
+  const participantsCount = stats.participants || 0;
+  const projectsCount = stats.projects || 0;
+  const countriesCount = stats.countries || 0;
 
   const metrics = [
     {
       label: 'Участников',
-      value: (projects.length + initiatives.length + 12000).toLocaleString('ru-RU'),
+      value: participantsCount.toLocaleString('ru-RU'),
       delay: '0s',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
@@ -48,7 +52,7 @@ export function HomePage({ data, changePage }) {
     },
     {
       label: 'Проектов',
-      value: projects.length || 6,
+      value: projectsCount,
       delay: '.1s',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
@@ -72,7 +76,7 @@ export function HomePage({ data, changePage }) {
     },
     {
       label: 'Стран',
-      value: Math.max(projects.length, 4),
+      value: countriesCount,
       delay: '.3s',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
@@ -188,7 +192,7 @@ export function HomePage({ data, changePage }) {
                       <line x1="8" y1="2" x2="8" y2="18" />
                       <line x1="16" y1="6" x2="16" y2="22" />
                     </svg>
-                    <span>{projects.length ? `${projects.length} проектов на карте` : 'Загрузка…'}</span>
+                    <span>{projectsCount ? `${projectsCount} проектов на карте` : 'Загрузка…'}</span>
                   </div>
                 </div>
               </div>

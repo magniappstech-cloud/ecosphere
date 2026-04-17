@@ -3,11 +3,7 @@ import { useState } from 'react';
 const FALLBACK_ARTICLE_IMAGE = 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=1200&q=80';
 
 function buildLoginUrl(siteUrl) {
-  if (typeof window === 'undefined') {
-    return `${siteUrl || '/'}wp-login.php`;
-  }
-
-  return `${siteUrl || '/'}wp-login.php?redirect_to=${encodeURIComponent(window.location.href)}`;
+  return `${siteUrl || '/'}#login`;
 }
 
 function filterArticles(items, topic, search, sort) {
