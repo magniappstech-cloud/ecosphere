@@ -233,3 +233,44 @@ function ecosfera_add_initiative_author_column(array $columns): array
 }
 
 add_filter('manage_initiative_posts_columns', 'ecosfera_add_initiative_author_column');
+
+function ecosfera_register_project_location_fields(): void
+{
+    if (!function_exists('acf_add_local_field_group')) {
+        return;
+    }
+
+    acf_add_local_field_group(
+        [
+            'key' => 'group_ecosfera_project_location',
+            'title' => 'Project location',
+            'fields' => [
+                [
+                    'key' => 'field_ecosfera_project_city',
+                    'label' => 'City',
+                    'name' => 'city',
+                    'type' => 'text',
+                    'instructions' => 'Used for the radar block on the homepage.',
+                    'required' => 0,
+                    'default_value' => '',
+                ],
+            ],
+            'location' => [
+                [
+                    [
+                        'param' => 'post_type',
+                        'operator' => '==',
+                        'value' => 'project',
+                    ],
+                ],
+            ],
+            'position' => 'normal',
+            'style' => 'default',
+            'label_placement' => 'top',
+            'instruction_placement' => 'label',
+            'active' => true,
+        ]
+    );
+}
+
+add_action('acf/init', 'ecosfera_register_project_location_fields');

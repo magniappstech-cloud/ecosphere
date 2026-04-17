@@ -234,6 +234,7 @@ function ecosfera_format_post(WP_Post $post): array
     $status = ecosfera_normalize_choice_field('status', $post->ID);
     $format = ecosfera_normalize_choice_field('format', $post->ID);
     $topics = wp_get_post_terms($post->ID, 'ecosfera_topic', ['fields' => 'names']);
+    $city = $post->post_type === 'project' ? ecosfera_get_text_field('city', $post->ID) : '';
 
     return [
         'id' => (int) $post->ID,
@@ -253,6 +254,7 @@ function ecosfera_format_post(WP_Post $post): array
         'statusLabel' => $status['label'],
         'format' => $format['value'],
         'formatLabel' => $format['label'],
+        'city' => $city,
     ];
 }
 

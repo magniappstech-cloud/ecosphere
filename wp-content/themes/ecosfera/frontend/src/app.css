@@ -461,6 +461,30 @@
   margin-top: var(--sp-6);
 }
 
+.radar-tooltip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--c-text);
+}
+
+.radar-tooltip__status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 8px;
+}
+
+.radar-tooltip__status--done {
+  background: var(--c-green);
+  box-shadow: 0 0 0 4px rgba(42, 245, 152, 0.14);
+}
+
+.radar-tooltip__status--active {
+  background: var(--c-coral);
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.14);
+}
+
 .player__progress-track {
   position: relative;
 }
@@ -532,8 +556,11 @@
   accent-color: var(--c-green);
 }
 
-#leaders .sec-h2.stagger-item.stagger-item--in{
+#leaders .sec-h2.stagger-item.stagger-item--in, #radar .sec-h2.stagger-item.stagger-item--in{
   color: var(--text);
+}
+#radar .sec-sub.stagger-item.stagger-item--in{
+  color: var(--text-muted);
 }
 .art-card__body h3{
   color: var(--text-dim);
