@@ -269,25 +269,80 @@ const SECTION_MAP = {
   '404': 'not-found',
 };
 
+function ScrollToTopButton() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const onScroll = () => {
+      setVisible(window.scrollY > window.innerHeight);
+    };
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return (
+    <button
+      type="button"
+      className={`scroll-top-button${visible ? ' is-visible' : ''}`}
+      aria-label="Вернуться наверх"
+      onClick={() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 19V5" />
+        <path d="m5 12 7-7 7 7" />
+      </svg>
+    </button>
+  );
+}
+
 export default function App() {
   const [data] = useState(() => getBootstrapData());
   const view = SECTION_MAP[data?.current?.template] || 'portal';
 
   if (view === 'portal') {
-    return <PortalShell data={data} />;
+    return (
+      <>
+        <PortalShell data={data} />
+        <ScrollToTopButton />
+      </>
+    );
   }
 
   if (view === 'content') {
     if (data?.current?.post?.type === 'article') {
-      return <PortalArticleView data={data} />;
+      return (
+        <>
+          <PortalArticleView data={data} />
+          <ScrollToTopButton />
+        </>
+      );
     }
 
     if (data?.current?.post?.type === 'project') {
-      return <PortalProjectView data={data} />;
+      return (
+        <>
+          <PortalProjectView data={data} />
+          <ScrollToTopButton />
+        </>
+      );
     }
 
     if (data?.current?.post?.type === 'news_item') {
-      return <PortalNewsView data={data} />;
+      return (
+        <>
+          <PortalNewsView data={data} />
+          <ScrollToTopButton />
+        </>
+      );
     }
 
     return (
@@ -295,6 +350,7 @@ export default function App() {
         <SiteHeader site={data?.site} navigation={data?.navigation} />
         <ContentView currentPost={data?.current?.post} />
         <SiteFooter site={data?.site} navigation={data?.navigation} />
+        <ScrollToTopButton />
       </>
     );
   }
@@ -304,6 +360,7 @@ export default function App() {
       <SiteHeader site={data?.site} navigation={data?.navigation} />
       <NotFoundView />
       <SiteFooter site={data?.site} navigation={data?.navigation} />
+      <ScrollToTopButton />
     </>
   );
 }
