@@ -7,7 +7,7 @@ const FALLBACK_TRACKS = [
     id: 1,
     title: 'Марш ответственности',
     artist: 'Лаборатория Экосферы',
-    featuredImage: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=900&q=80',
+    featuredImage: '/images/unsplash/photo-1493225457124-a3eb161ffa5f-w900-q80.jpg',
     duration: '3:42',
     audioFile: '',
   },
@@ -17,22 +17,22 @@ const FALLBACK_GALLERY = [
   {
     id: 1,
     title: 'Память о риске',
-    featuredImage: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1400&q=80',
+    featuredImage: '/images/unsplash/photo-1500530855697-b586d89ba3ee-w1400-q80.jpg',
   },
   {
     id: 2,
     title: 'Сигналы города',
-    featuredImage: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=1400&q=80',
+    featuredImage: '/images/unsplash/photo-1493246507139-91e8fad9978e-w1400-q80.jpg',
   },
   {
     id: 3,
     title: 'Среда, которая бережет',
-    featuredImage: 'https://images.unsplash.com/photo-1511497584788-876760111969?w=1400&q=80',
+    featuredImage: '/images/unsplash/photo-1511497584788-876760111969-w1400-q80.jpg',
   },
   {
     id: 4,
     title: 'Производство без травм',
-    featuredImage: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1400&q=80',
+    featuredImage: '/images/unsplash/photo-1504384308090-c894fdcc538d-w1400-q80.jpg',
   },
 ];
 
@@ -43,7 +43,7 @@ const FALLBACK_VIDEOS = [
     author: 'Редакция Экосферы',
     meta: 'Добавьте видео в WordPress',
     excerpt: 'Здесь будет описание видеоматериала.',
-    featuredImage: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1400&q=80',
+    featuredImage: '/images/unsplash/photo-1516321318423-f06f85e504b3-w1400-q80.jpg',
     videoFile: '',
     videoUrl: '',
     embedHtml: '',
@@ -55,7 +55,7 @@ const FALLBACK_STORIES = [
     id: 1,
     title: 'История в кадре',
     excerpt: 'Создайте отдельную запись истории в админке.',
-    featuredImage: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1400&q=80',
+    featuredImage: '/images/unsplash/photo-1517048676732-d65bc937f952-w1400-q80.jpg',
     url: '#',
     cardLabel: 'История',
   },
@@ -358,7 +358,7 @@ export function ArtPage({ data, openLightbox }) {
             <div className={`player${isPlaying ? ' is-playing' : ''}`}>
               <div className="player__cover" aria-hidden="true">
                 <img
-                  src={currentTrack?.featuredImage || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=900&q=80'}
+                  src={currentTrack?.featuredImage || '/images/unsplash/photo-1493225457124-a3eb161ffa5f-w900-q80.jpg'}
                   alt=""
                 />
                 <div className="player__cover-overlay" />
@@ -453,7 +453,7 @@ export function ArtPage({ data, openLightbox }) {
                     <span className="track-num">{String(index + 1).padStart(2, '0')}</span>
                     <span className="track-cover">
                       <img
-                        src={track.featuredImage || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=900&q=80'}
+                        src={track.featuredImage || '/images/unsplash/photo-1493225457124-a3eb161ffa5f-w900-q80.jpg'}
                         alt=""
                       />
                     </span>
@@ -527,7 +527,7 @@ export function ArtPage({ data, openLightbox }) {
                 {activeVideoSource.type === 'link' ? (
                   <a className="art-video-link" href={activeVideoSource.src} target="_blank" rel="noreferrer">
                     <img
-                      src={activeVideo?.featuredImage || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1400&q=80'}
+                      src={activeVideo?.featuredImage || '/images/unsplash/photo-1516321318423-f06f85e504b3-w1400-q80.jpg'}
                       alt={activeVideo?.title || 'Видео'}
                     />
                     <span className="art-video-link__overlay">Открыть видео</span>
@@ -604,7 +604,7 @@ export function ArtPage({ data, openLightbox }) {
         <div className="container story-grid reveal">
           {stories.map((story, index) => (
             <a key={story.id} className="story-card" href={story.url}>
-              <img src={story.featuredImage || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1400&q=80'} alt={story.title} />
+              <img src={story.featuredImage || '/images/unsplash/photo-1517048676732-d65bc937f952-w1400-q80.jpg'} alt={story.title} />
               <span className="story-card__overlay" />
               <div className="story-card__meta">
                 <span className="story-card__index">{String(index + 1).padStart(2, '0')}</span>

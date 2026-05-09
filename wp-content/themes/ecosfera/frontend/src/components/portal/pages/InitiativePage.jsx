@@ -213,8 +213,8 @@ export function InitiativePage({ data }) {
           }}
           className="reveal"
         >
-          Опишите проблему, предложите решение и приложите материалы. Инициатива будет создана в WordPress как запись
-          типа <strong>Initiatives</strong> со статусом модерации и автором текущего пользователя.
+          Опишите проблему, предложите решение и приложите материалы. 
+          <strong>Initiatives</strong>
         </p>
       </div>
 

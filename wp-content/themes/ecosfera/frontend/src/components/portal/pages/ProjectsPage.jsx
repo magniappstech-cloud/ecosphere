@@ -82,7 +82,7 @@ export function ProjectsPage({ data }) {
                   <div
                     className="project-card-img"
                     style={{
-                      backgroundImage: `url('${project.featuredImage || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&q=80'}')`,
+                      backgroundImage: `url('${project.featuredImage || '/images/unsplash/photo-1522202176988-66273c2fd55f-w1200-q80.jpg'}')`,
                     }}
                   >
                     <span className={`project-status ${status.className}`}>{statusLabel}</span>

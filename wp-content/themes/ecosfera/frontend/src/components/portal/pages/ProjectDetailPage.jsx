@@ -43,7 +43,7 @@ export function ProjectDetailPage({ project }) {
             <div
               className="project-detail__media"
               style={{
-                backgroundImage: `url('${project?.featuredImage || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&q=80'}')`,
+                backgroundImage: `url('${project?.featuredImage || '/images/unsplash/photo-1522202176988-66273c2fd55f-w1400-q80.jpg'}')`,
               }}
             >
               <span className={`project-status ${statusClass}`}>{statusLabel}</span>

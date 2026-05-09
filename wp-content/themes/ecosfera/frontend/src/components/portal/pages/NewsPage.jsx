@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 
 const FILTER_ALL = 'Все';
 const FILTER_ORDER = [FILTER_ALL, 'Экология', 'Энергетика', 'Наука', 'Города', 'Проекты', 'Культура'];
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=1400&q=80';
+const FALLBACK_IMAGE = '/images/unsplash/photo-1466611653911-95081537e5b7-w1400-q80.jpg';
 
 const FALLBACK_ITEMS = [
   {

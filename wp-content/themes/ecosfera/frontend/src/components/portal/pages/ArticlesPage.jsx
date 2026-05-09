@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const FALLBACK_ARTICLE_IMAGE = 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=1200&q=80';
+const FALLBACK_ARTICLE_IMAGE = '/images/unsplash/photo-1519125323398-675f0ddb6308-w1200-q80.jpg';
 
 function buildLoginUrl(siteUrl) {
   return `${siteUrl || '/'}#login`;
@@ -69,7 +69,7 @@ export function ArticlesPage({ data }) {
     if (!isLoggedIn) {
       setSubmitState({
         status: 'error',
-        message: 'Только зарегистрированные пользователи могут отправлять статьи.',
+        message: 'Только зарегистрированные пользователи могут публиковать статьи.',
       });
       return;
     }
@@ -196,7 +196,7 @@ export function ArticlesPage({ data }) {
               </button>
             ) : (
               <a className="btn-secondary" href={loginUrl}>
-                Войти, чтобы отправить статью
+                Войти, чтобы опубликовать статью
               </a>
             )}
           </div>

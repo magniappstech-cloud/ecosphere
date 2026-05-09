@@ -1705,7 +1705,7 @@ body {
 
 /* ── Hero section: full-bleed photo behind masonry ── */
 #hero {
-  background-image: url('https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=1800&q=85');
+  background-image: url('/images/unsplash/photo-1497436072909-60f360e1d4b1-w1800-q85.jpg');
   background-size: cover;
   background-position: center 30%;
   background-attachment: fixed; /* parallax feel on desktop */
@@ -1737,7 +1737,7 @@ body {
 
 /* ── Slogan section: subtle photo texture ── */
 #slogan {
-  background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1600&q=70');
+  background-image: url('/images/unsplash/photo-1441974231531-c6227db76b6e-w1600-q70.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -1760,7 +1760,7 @@ body {
 
 /* ── Metrics: industrial texture ── */
 #metrics {
-  background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?w=1400&q=70');
+  background-image: url('/images/unsplash/photo-1518770660439-4636190af475-w1400-q70.jpg');
   background-size: cover;
   background-position: center;
   position: relative;
@@ -1785,7 +1785,7 @@ body {
 
 /* ── Leaders section: nature texture ── */
 #leaders {
-  background-image: url('https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1400&q=70');
+  background-image: url('/images/unsplash/photo-1501854140801-50d01698950b-w1400-q70.jpg');
   background-size: cover;
   background-position: center 60%;
   background-attachment: fixed;
@@ -1805,7 +1805,7 @@ body {
 
 /* ── Music hero: recording studio / performance photo ── */
 #music-hero {
-  background-image: url('https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=1600&q=80');
+  background-image: url('/images/unsplash/photo-1519125323398-675f0ddb6308-w1600-q80.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -1827,7 +1827,7 @@ body {
 
 /* ── Art gallery section: dark with subtle texture ── */
 #art-gallery {
-  background-image: url('https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=1400&q=70');
+  background-image: url('/images/unsplash/photo-1473341304170-971dccb5ac1e-w1400-q70.jpg');
   background-size: cover;
   background-position: center;
   position: relative;
@@ -1846,7 +1846,7 @@ body {
 
 /* ── Video section: cinematic background ── */
 #video-sec {
-  background-image: url('https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1400&q=70');
+  background-image: url('/images/unsplash/photo-1504711434969-e33886168f5c-w1400-q70.jpg');
   background-size: cover;
   background-position: center 40%;
   position: relative;
@@ -1870,7 +1870,7 @@ body {
 
 /* ── Projects page section ── */
 #p-projects .sec {
-  background-image: url('https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=1600&q=75');
+  background-image: url('/images/unsplash/photo-1532996122724-e3c354a0b15b-w1600-q75.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -1890,7 +1890,7 @@ body {
 
 /* ── News hero ── */
 .news-hero {
-  background-image: url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1600&q=75');
+  background-image: url('/images/unsplash/photo-1477959858617-67f85cf4f1df-w1600-q75.jpg');
   background-size: cover;
   background-position: center 30%;
   background-attachment: fixed;
@@ -1910,7 +1910,7 @@ body {
 
 /* ── Initiative hero ── */
 .initiative-hero {
-  background-image: url('https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=1600&q=75');
+  background-image: url('/images/unsplash/photo-1433086966358-54859d0ed716-w1600-q75.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -1932,7 +1932,7 @@ body {
 
 /* ── Registration visual panel ── */
 .reg-visual {
-  background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1000&q=80') !important;
+  background-image: url('/images/unsplash/photo-1464822759023-fed622ff2c3b-w1000-q80.jpg') !important;
   background-size: cover !important;
   background-position: center !important;
   position: relative !important;
@@ -1954,7 +1954,7 @@ body {
 
 /* ── Footer: dark photo texture ── */
 #footer {
-  background-image: url('https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&q=60') !important;
+  background-image: url('/images/unsplash/photo-1504711434969-e33886168f5c-w1200-q60.jpg') !important;
   background-size: cover !important;
   background-position: center bottom !important;
   position: relative;
@@ -3168,7 +3168,7 @@ small,
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-image: url('https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=1600&q=75');
+  background-image: url('/images/unsplash/photo-1497436072909-60f360e1d4b1-w1600-q75.jpg');
   background-size: cover;
   background-position: center 35%;
   opacity: 0.18;  /* very low — bg gradient is the star */

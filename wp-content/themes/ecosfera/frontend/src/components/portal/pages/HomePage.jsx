@@ -265,7 +265,7 @@ function createClusterIcon(cluster) {
 function renderClusterTooltip(projects) {
   return `
     <div class="map-tooltip map-tooltip--cluster">
-      <div class="map-tooltip__title">Проекты в выбранной области</div>
+      <div class="map-tooltip__title">Кейсы в выбранной области</div>
       <ul class="map-tooltip__list">
         ${projects
       .map(
@@ -388,7 +388,7 @@ function ProjectSidebar({ projects, selectedProjectId, onSelectProject, isLoadin
       <aside className="project-sidebar">
         <div className="project-sidebar__empty">
           <h3>Пока нет точек для отображения</h3>
-          <p>{isLoading ? 'Получаем координаты городов из OpenStreetMap…' : 'Заполните поле city у проектов, и они появятся и на карте, и в боковом списке.'}</p>
+          <p>{isLoading ? 'Получаем координаты городов из OpenStreetMap…' : 'Заполните поле city у кейсов, и они появятся и на карте, и в боковом списке.'}</p>
         </div>
       </aside>
     );
@@ -409,11 +409,11 @@ function ProjectSidebar({ projects, selectedProjectId, onSelectProject, isLoadin
     <aside className="project-sidebar">
       <div className="project-sidebar__head">
         <div>
-          <div className="project-sidebar__eyebrow">Список проектов</div>
-          <h3 className="project-sidebar__title">Проекты на карте</h3>
+          <div className="project-sidebar__eyebrow">Список кейсов</div>
+          <h3 className="project-sidebar__title">Кейсы на карте</h3>
         </div>
         <button className="project-sidebar__all" type="button" onClick={onOpenProjects}>
-          Все проекты
+          Все кейсы
         </button>
       </div>
 
@@ -423,7 +423,7 @@ function ProjectSidebar({ projects, selectedProjectId, onSelectProject, isLoadin
             <div className="project-sidebar__group-head">
               <h4 className="project-sidebar__group-title">{city}</h4>
               <span className="project-sidebar__group-count">
-                {cityProjects.length} {cityProjects.length === 1 ? 'проект' : cityProjects.length < 5 ? 'проекта' : 'проектов'}
+                {cityProjects.length} {cityProjects.length === 1 ? 'кейс' : cityProjects.length < 5 ? 'кейса' : 'кейсов'}
               </span>
             </div>
 
@@ -461,7 +461,7 @@ function ProjectSidebar({ projects, selectedProjectId, onSelectProject, isLoadin
                           event.stopPropagation();
                         }}
                       >
-                        Открыть проект
+                        Открыть кейс
                       </a>
                     </div>
                   </article>
@@ -506,12 +506,12 @@ function ProjectMapSection({ projects, changePage }) {
         <div className="project-map__caption">
           {mapProjects.length ? (
             <>
-              <span>{mapProjects.length} проектов на карте</span>
+              <span>{mapProjects.length} кейсов на карте</span>
             </>
           ) : (
             <>
-              <span>Пока нет проектов с валидным городом</span>
-              <span>{isLoading ? 'Получаем координаты из OpenStreetMap…' : 'Карта и список строятся только по реальным проектам, у которых заполнено поле city.'}</span>
+              <span>Пока нет кейсов с валидным городом</span>
+              <span>{isLoading ? 'Получаем координаты из OpenStreetMap…' : 'Карта и список строятся только по реальным кейсам, у которых заполнено поле city.'}</span>
             </>
           )}
         </div>
@@ -542,9 +542,9 @@ export function HomePage({ data, changePage }) {
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       ),
-    },
+    },/*
     {
-      label: 'Проектов',
+      label: 'Кейсов',
       value: projectsCount,
       delay: '.1s',
       icon: (
@@ -578,7 +578,7 @@ export function HomePage({ data, changePage }) {
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
         </svg>
       ),
-    },
+    },*/
   ];
 
   const leaders = (pages.length ? pages : posts).slice(0, 4);
@@ -588,14 +588,14 @@ export function HomePage({ data, changePage }) {
       <section id="hero" aria-label="Главный экран">
         <div className="hero__bg" id="hero-bg" aria-hidden="true" />
         <div className="hero__content">
-          <div className="hero__label">Портал культуры безопасности</div>
+          <div className="hero__label">Портал безопасности человека будущего</div>
           <h1 className="hero__title">
-            Культура безопасности
+            Миссия
             <br />
-            <em>нового уровня</em>
+            <em>платформы</em>
           </h1>
-          <p className="hero__sub">Объединяем экспертов, проекты и знания, создаём пространство, где безопасность становится частью жизни каждого.</p>
-          <div className="hero__actions">
+          <p className="hero__sub">Объединить экспертов, энтузиастов, лидеров, проекты и знания, формируем культуру безопасного мышления и поведения, создаем пространство где безопасность становится частью жизни каждого.</p>
+          {/*<div className="hero__actions">
             <a className="btn-primary" href="#metrics">
               Начать
             </a>
@@ -614,7 +614,7 @@ export function HomePage({ data, changePage }) {
               ],
               [
                 'projects',
-                'Проекты',
+                'Кейсы',
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" key="projects-icon">
                   <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                 </svg>,
@@ -651,8 +651,19 @@ export function HomePage({ data, changePage }) {
                 <span>{label}</span>
               </button>
             ))}
-          </nav>
+          </nav>*/}
         </div>
+      </section>
+
+      <section id="slogan" className="stagger-section">
+
+        <h1 className="slogan-h1 stagger-item">
+          МАНИФЕСТ
+        </h1>
+        <p className="slogan-h2 stagger-item">Сегодня и в ближайшее время мы начнём готовиться встретить новый мир, лицо и суть которого в будущем нам становится понятна уже сегодня - из мировых новостей и всё еще живущих концепций инклюзивности по Клаусу Мартину Швабу...
+          Мы будем поэтапно рассматривать шесть основных метаморфоз и будущих обликов мира 2045+. А именно: изменение и расхождение культуры безопасного мышления и поведения в разных слоях общества; поляризация ценностей и отчуждение принципов и смыслов у старших и младших поколений; повсеместная потеря взаимопонимания и единства между богатыми и бедными; разрыв в развитии крупных агломераций и центров власти относительно сельских поселений и малых городов на большей части территорий страны; изменения на рынке востребованного труда и нужных компетенций; потеря большинством населения возможности пользования передовыми, но дорогими технологиями и инновациями. Всё это дополнительно будет сопровождаться нарастанием внешних угроз от недружественных стран и соперничества со стороны стран-конкурентов в экономических сферах жизни общества.
+          Это есть примерная архитектура возможного устройства нашего мира и условий жизни для наших детей: 2045+.
+          В команде нашего сообщества мы постепенно будем узнавать особенности и изучать способы выживания и приспособления к грядущим изменения, которые могут быть опасны и рискованны...</p>
       </section>
 
       <section id="slogan" className="stagger-section">
@@ -686,14 +697,14 @@ export function HomePage({ data, changePage }) {
         <div className="container">
           <div className="radar-layout">
             <div>
-              <div className="sec-label stagger-item">География проектов</div>
+              <div className="sec-label stagger-item">География кейсов</div>
               <h2 className="sec-h2 stagger-item">Интерактивная карта проектов</h2>
               <p className="sec-sub stagger-item">
-                Карта строится автоматически по реальным проектам. Список справа теперь сгруппирован по городам: если в одном городе несколько проектов, их удобнее просматривать в одном
+                Карта строится автоматически по реальным кейсам. Список справа теперь сгруппирован по городам: если в одном городе несколько кейсов, их удобнее просматривать в одном
                 блоке.
               </p>
               <button className="btn-primary stagger-item" type="button" onClick={() => changePage('projects')}>
-                Все проекты →
+                Все кейсы →
               </button>
               <div className="map-legend stagger-item">
                 <span className="map-legend__item map-legend__item--done">
