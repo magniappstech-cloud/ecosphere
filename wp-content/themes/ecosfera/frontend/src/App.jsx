@@ -9,6 +9,7 @@ import { ArticleDetailPage } from './components/portal/pages/ArticleDetailPage';
 import { NewsDetailPage } from './components/portal/pages/NewsDetailPage';
 import { ProjectDetailPage } from './components/portal/pages/ProjectDetailPage';
 import { getBootstrapData } from './lib/wp';
+import { EsgDetailPage } from './components/portal/pages/EsgDetailPage';
 
 const PORTAL_PAGE_LABELS = {
   home: 'Главная',
@@ -16,6 +17,7 @@ const PORTAL_PAGE_LABELS = {
   articles: 'Статьи',
   projects: 'Проекты',
   news: 'Новости',
+  esgpage: 'ESG',
   initiative: 'Инициатива',
   register: 'Регистрация',
   login: 'Вход',
@@ -259,6 +261,81 @@ function PortalNewsView({ data }) {
   );
 }
 
+function PortalESGPageView({ data }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [navScrolled, setNavScrolled] = useState(false);
+
+  const changePage = (pageId) => {
+    window.location.href = `${data?.site?.url || '/'}#${pageId}`;
+  };
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('mob-open');
+      document.body.style.overflow = '';
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const onScroll = () => {
+      setNavScrolled(window.scrollY > 10);
+    };
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return undefined;
+    }
+
+    document.body.classList.toggle('mob-open', mobileOpen);
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+
+    return () => {
+      document.body.classList.remove('mob-open');
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
+
+  return (
+    <>
+      <PortalHeader
+        activePage="esgpage"
+        changePage={changePage}
+        mobileOpen={mobileOpen}
+        navScrolled={navScrolled}
+        navigation={data?.navigation}
+        pageLabels={PORTAL_PAGE_LABELS}
+        openMobileMenu={() => setMobileOpen(true)}
+      />
+
+      <PortalMobileMenu
+        activePage="esgpage"
+        changePage={changePage}
+        mobileOpen={mobileOpen}
+        navigation={data?.navigation}
+        pageLabels={PORTAL_PAGE_LABELS}
+        closeMobileMenu={() => setMobileOpen(false)}
+      />
+
+      <EsgDetailPage article={data?.current?.post} />
+
+      <PortalFooter
+        data={data}
+        changePage={changePage}
+      />
+    </>
+  );
+}
+
 const SECTION_MAP = {
   'front-page': 'portal',
   home: 'portal',
@@ -340,6 +417,15 @@ export default function App() {
       return (
         <>
           <PortalNewsView data={data} />
+          <ScrollToTopButton />
+        </>
+      );
+    }
+
+    if (data?.current?.post?.type === 'esg_pages') {
+      return (
+        <>
+          <PortalESGPageView data={data} />
           <ScrollToTopButton />
         </>
       );

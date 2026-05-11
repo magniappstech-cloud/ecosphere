@@ -117,6 +117,25 @@ function ecosfera_register_content_types(): void
     );
 
     register_post_type(
+    'esg_pages',
+    [
+        'labels' => [
+            'name' => __('ESG Pages', 'ecosfera'),
+            'singular_name' => __('ESG Page', 'ecosfera'),
+            'menu_name' => __('ESG Pages', 'ecosfera'),
+        ],
+        'public' => true,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'show_in_rest' => true,
+        'menu_icon' => 'dashicons-media-document',
+        'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'author', 'revisions', 'page-attributes'],
+        'has_archive' => true,
+        'rewrite' => ['slug' => 'esg-pages'],
+    ]
+);
+
+    register_post_type(
         'news_item',
         [
             'labels' => [
@@ -158,7 +177,7 @@ function ecosfera_register_content_types(): void
 
     register_taxonomy(
         'ecosfera_topic',
-        ['post', 'project', 'initiative', 'artwork', 'art_audio', 'art_video', 'art_story', 'article'],
+        ['post', 'project', 'initiative', 'artwork', 'art_audio', 'art_video', 'art_story', 'article', 'esg_pages'],
         [
             'labels' => [
                 'name' => __('Topics', 'ecosfera'),

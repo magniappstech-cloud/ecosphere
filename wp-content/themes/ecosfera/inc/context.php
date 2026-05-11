@@ -373,6 +373,7 @@ function ecosfera_build_frontend_context(): array
         'collections' => [
             'posts' => ecosfera_query_posts('post', 'ecosfera_format_post'),
             'articles' => ecosfera_query_posts('article', 'ecosfera_format_post', 24),
+            'esgPage' => ecosfera_query_posts('esg_pages', 'ecosfera_format_post', 24),
             'news' => ecosfera_query_posts('news_item', 'ecosfera_format_news_post', 24),
             'projects' => ecosfera_query_posts('project', 'ecosfera_format_post'),
             'initiatives' => ecosfera_query_posts('initiative', 'ecosfera_format_post'),
@@ -397,6 +398,7 @@ function ecosfera_build_frontend_context(): array
             'nonce' => wp_create_nonce('wp_rest'),
             'bootstrap' => esc_url_raw(rest_url('ecosfera/v1/bootstrap')),
             'articleSubmission' => esc_url_raw(rest_url('ecosfera/v1/article-submissions')),
+            'esgSubmission' => esc_url_raw(rest_url('ecosfera/v1/esg-submissions')),
             'initiativeSubmission' => esc_url_raw(rest_url('ecosfera/v1/initiative-submissions')),
             'registerUser' => esc_url_raw(rest_url('ecosfera/v1/register-user')),
             'loginUser' => esc_url_raw(rest_url('ecosfera/v1/login-user')),
