@@ -1,6 +1,6 @@
 import { getTopLevelMenu, resolvePortalPageId } from '@/lib/navigation';
 
-export function PortalHeader({ activePage, changePage, mobileOpen, navScrolled, openMobileMenu, pageLabels, navigation }) {
+export function PortalHeader({ activePage, changePage, mobileOpen, navScrolled, openMobileMenu, pageLabels, navigation, user }) {
   const menuItems = getTopLevelMenu(navigation?.headerPrimary || navigation?.primary || []);
   const visibleItems = menuItems.length
     ? menuItems
@@ -15,12 +15,15 @@ export function PortalHeader({ activePage, changePage, mobileOpen, navScrolled, 
       <div className="nav-links">
         {visibleItems.map((item) => {
           const pageId = resolvePortalPageId(item.url);
-          const className = `${activePage === pageId ? 'active ' : ''}${pageId === 'register' ? 'nav-cta' : ''}`.trim();
+          const isAuthSwitch = pageId === 'register' && user?.loggedIn;
+          const targetPageId = isAuthSwitch ? 'account' : pageId;
+          const title = isAuthSwitch ? 'Личный кабинет' : item.title;
+          const className = `${activePage === targetPageId ? 'active ' : ''}${pageId === 'register' ? 'nav-cta' : ''}`.trim();
 
-          if (pageId) {
+          if (targetPageId) {
             return (
-              <button key={item.id} type="button" id={`nl-${pageId}`} className={className} onClick={() => changePage(pageId)}>
-                {item.title}
+              <button key={item.id} type="button" id={`nl-${targetPageId}`} className={className} onClick={() => changePage(targetPageId)}>
+                {title}
               </button>
             );
           }
@@ -48,4 +51,3 @@ export function PortalHeader({ activePage, changePage, mobileOpen, navScrolled, 
     </nav>
   );
 }
-

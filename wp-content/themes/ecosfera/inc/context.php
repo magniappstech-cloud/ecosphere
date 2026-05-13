@@ -229,6 +229,125 @@ function ecosfera_get_site_stats(): array
     ];
 }
 
+function ecosfera_format_dashboard_item(WP_Post $post): array
+{
+    $item = ecosfera_format_post($post);
+    $item['postStatus'] = $post->post_status;
+    $item['editLabel'] = $post->post_status === 'draft' ? 'Продолжить' : 'Открыть';
+
+    return $item;
+}
+
+function ecosfera_get_recent_activity(array $posts, string $type, array &$months): void
+{
+    foreach ($posts as $post) {
+        if (!$post instanceof WP_Post) {
+            continue;
+        }
+
+        $month_key = wp_date('Y-m', strtotime($post->post_date_gmt ?: $post->post_date));
+
+        if (!isset($months[$month_key])) {
+            continue;
+        }
+
+        $months[$month_key][$type]++;
+    }
+}
+
+function ecosfera_get_user_dashboard_data(int $user_id): array
+{
+    if ($user_id <= 0) {
+        return [
+            'articles' => [
+                'publishedCount' => 0,
+                'pendingCount' => 0,
+                'draftCount' => 0,
+                'published' => [],
+                'pending' => [],
+                'drafts' => [],
+            ],
+            'projects' => [
+                'count' => 0,
+                'publishedCount' => 0,
+                'pendingCount' => 0,
+                'draftCount' => 0,
+                'items' => [],
+            ],
+            'activity' => [],
+        ];
+    }
+
+    $query_args = [
+        'author' => $user_id,
+        'post_status' => ['publish', 'pending', 'draft'],
+        'posts_per_page' => -1,
+        'orderby' => 'date',
+        'order' => 'DESC',
+        'no_found_rows' => true,
+    ];
+
+    $article_posts = get_posts(
+        array_merge(
+            $query_args,
+            [
+                'post_type' => 'article',
+            ]
+        )
+    );
+
+    $project_posts = get_posts(
+        array_merge(
+            $query_args,
+            [
+                'post_type' => 'project',
+            ]
+        )
+    );
+
+    $published_articles = array_values(array_filter($article_posts, static fn (WP_Post $post): bool => $post->post_status === 'publish'));
+    $pending_articles = array_values(array_filter($article_posts, static fn (WP_Post $post): bool => $post->post_status === 'pending'));
+    $draft_articles = array_values(array_filter($article_posts, static fn (WP_Post $post): bool => $post->post_status === 'draft'));
+
+    $published_projects = array_values(array_filter($project_posts, static fn (WP_Post $post): bool => $post->post_status === 'publish'));
+    $pending_projects = array_values(array_filter($project_posts, static fn (WP_Post $post): bool => $post->post_status === 'pending'));
+    $draft_projects = array_values(array_filter($project_posts, static fn (WP_Post $post): bool => $post->post_status === 'draft'));
+
+    $months = [];
+
+    for ($offset = 5; $offset >= 0; $offset--) {
+        $timestamp = strtotime("-{$offset} months");
+        $month_key = wp_date('Y-m', $timestamp);
+        $months[$month_key] = [
+            'label' => ecosfera_decode_text(wp_date('M', $timestamp)),
+            'articles' => 0,
+            'projects' => 0,
+        ];
+    }
+
+    ecosfera_get_recent_activity($article_posts, 'articles', $months);
+    ecosfera_get_recent_activity($project_posts, 'projects', $months);
+
+    return [
+        'articles' => [
+            'publishedCount' => count($published_articles),
+            'pendingCount' => count($pending_articles),
+            'draftCount' => count($draft_articles),
+            'published' => array_map('ecosfera_format_dashboard_item', array_slice($published_articles, 0, 24)),
+            'pending' => array_map('ecosfera_format_dashboard_item', array_slice($pending_articles, 0, 24)),
+            'drafts' => array_map('ecosfera_format_dashboard_item', array_slice($draft_articles, 0, 24)),
+        ],
+        'projects' => [
+            'count' => count($project_posts),
+            'publishedCount' => count($published_projects),
+            'pendingCount' => count($pending_projects),
+            'draftCount' => count($draft_projects),
+            'items' => array_map('ecosfera_format_dashboard_item', array_slice($project_posts, 0, 24)),
+        ],
+        'activity' => array_values($months),
+    ];
+}
+
 function ecosfera_format_post(WP_Post $post): array
 {
     $status = ecosfera_normalize_choice_field('status', $post->ID);
@@ -393,11 +512,13 @@ function ecosfera_build_frontend_context(): array
             'newsletter' => is_user_logged_in() ? get_user_meta(get_current_user_id(), 'ecosfera_newsletter_subscribed', true) === '1' : false,
             'isAdmin' => is_user_logged_in() ? current_user_can('manage_options') : false,
         ],
+        'userDashboard' => ecosfera_get_user_dashboard_data(get_current_user_id()),
         'rest' => [
             'root' => esc_url_raw(rest_url()),
             'nonce' => wp_create_nonce('wp_rest'),
             'bootstrap' => esc_url_raw(rest_url('ecosfera/v1/bootstrap')),
             'articleSubmission' => esc_url_raw(rest_url('ecosfera/v1/article-submissions')),
+            'projectSubmission' => esc_url_raw(rest_url('ecosfera/v1/project-submissions')),
             'esgSubmission' => esc_url_raw(rest_url('ecosfera/v1/esg-submissions')),
             'initiativeSubmission' => esc_url_raw(rest_url('ecosfera/v1/initiative-submissions')),
             'registerUser' => esc_url_raw(rest_url('ecosfera/v1/register-user')),

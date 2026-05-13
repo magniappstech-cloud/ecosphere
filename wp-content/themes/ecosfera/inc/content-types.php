@@ -14,7 +14,7 @@ function ecosfera_register_content_types(): void
             'public' => true,
             'show_in_rest' => true,
             'menu_icon' => 'dashicons-chart-area',
-            'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'revisions'],
+            'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'author', 'revisions'],
             'has_archive' => true,
             'rewrite' => ['slug' => 'projects'],
         ]

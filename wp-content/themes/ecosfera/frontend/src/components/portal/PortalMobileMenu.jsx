@@ -1,6 +1,6 @@
 import { getTopLevelMenu, resolvePortalPageId } from '@/lib/navigation';
 
-export function PortalMobileMenu({ activePage, changePage, mobileOpen, closeMobileMenu, pageLabels, navigation }) {
+export function PortalMobileMenu({ activePage, changePage, mobileOpen, closeMobileMenu, pageLabels, navigation, user }) {
   const handleNavigate = (pageId) => {
     changePage(pageId);
     closeMobileMenu();
@@ -19,11 +19,14 @@ export function PortalMobileMenu({ activePage, changePage, mobileOpen, closeMobi
         </button>
         {visibleItems.map((item) => {
           const pageId = resolvePortalPageId(item.url);
+          const isAuthSwitch = pageId === 'register' && user?.loggedIn;
+          const targetPageId = isAuthSwitch ? 'account' : pageId;
+          const title = isAuthSwitch ? 'Личный кабинет' : item.title;
 
-          if (pageId) {
+          if (targetPageId) {
             return (
-              <button key={item.id} type="button" className={activePage === pageId ? 'active' : ''} onClick={() => handleNavigate(pageId)}>
-                {item.title}
+              <button key={item.id} type="button" className={activePage === targetPageId ? 'active' : ''} onClick={() => handleNavigate(targetPageId)}>
+                {title}
               </button>
             );
           }
@@ -39,4 +42,3 @@ export function PortalMobileMenu({ activePage, changePage, mobileOpen, closeMobi
     </>
   );
 }
-

@@ -131,6 +131,146 @@ function ecosfera_split_full_name(string $full_name): array
     return [$first_name, $last_name];
 }
 
+function ecosfera_user_can_edit_post(int $post_id, string $post_type, int $user_id): bool
+{
+    $post = get_post($post_id);
+
+    return $post instanceof WP_Post
+        && $post->post_type === $post_type
+        && (int) $post->post_author === $user_id;
+}
+
+function ecosfera_save_article_submission(WP_REST_Request $request): WP_REST_Response|WP_Error
+{
+    if (!is_user_logged_in()) {
+        return new WP_Error('ecosfera_forbidden', __('Требуется авторизация.', 'ecosfera'), ['status' => 401]);
+    }
+
+    $user_id = get_current_user_id();
+    $post_id = (int) $request->get_param('postId');
+    $title = sanitize_text_field((string) $request->get_param('title'));
+    $excerpt = sanitize_textarea_field((string) $request->get_param('excerpt'));
+    $content = wp_kses_post((string) $request->get_param('content'));
+    $submission_mode = sanitize_key((string) $request->get_param('mode'));
+    $post_status = $submission_mode === 'draft' ? 'draft' : 'pending';
+
+    if ($post_status === 'pending' && ($title === '' || trim(wp_strip_all_tags($content)) === '')) {
+        return new WP_Error('ecosfera_invalid_submission', __('Заголовок и текст статьи обязательны для отправки на модерацию.', 'ecosfera'), ['status' => 422]);
+    }
+
+    if ($post_status === 'draft' && $title === '' && trim(wp_strip_all_tags($content)) === '' && $excerpt === '') {
+        return new WP_Error('ecosfera_invalid_submission', __('Добавьте хотя бы заголовок, анонс или текст, чтобы сохранить черновик.', 'ecosfera'), ['status' => 422]);
+    }
+
+    $post_data = [
+        'post_type' => 'article',
+        'post_status' => $post_status,
+        'post_title' => $title,
+        'post_excerpt' => $excerpt,
+        'post_content' => $content,
+        'post_author' => $user_id,
+    ];
+
+    if ($post_id > 0) {
+        if (!ecosfera_user_can_edit_post($post_id, 'article', $user_id)) {
+            return new WP_Error('ecosfera_forbidden', __('Нельзя редактировать этот черновик статьи.', 'ecosfera'), ['status' => 403]);
+        }
+
+        $post_data['ID'] = $post_id;
+        $saved_post_id = wp_update_post($post_data, true);
+    } else {
+        $saved_post_id = wp_insert_post($post_data, true);
+    }
+
+    if (is_wp_error($saved_post_id)) {
+        return $saved_post_id;
+    }
+
+    return new WP_REST_Response(
+        [
+            'success' => true,
+            'message' => $post_status === 'draft'
+                ? __('Черновик статьи сохранён.', 'ecosfera')
+                : __('Статья отправлена на модерацию.', 'ecosfera'),
+            'postId' => $saved_post_id,
+            'postStatus' => $post_status,
+        ],
+        $post_id > 0 ? 200 : 201
+    );
+}
+
+function ecosfera_save_project_submission(WP_REST_Request $request): WP_REST_Response|WP_Error
+{
+    if (!is_user_logged_in()) {
+        return new WP_Error('ecosfera_forbidden', __('Требуется авторизация.', 'ecosfera'), ['status' => 401]);
+    }
+
+    $user_id = get_current_user_id();
+    $post_id = (int) $request->get_param('postId');
+    $title = sanitize_text_field((string) $request->get_param('title'));
+    $excerpt = sanitize_textarea_field((string) $request->get_param('excerpt'));
+    $content = wp_kses_post((string) $request->get_param('content'));
+    $city = sanitize_text_field((string) $request->get_param('city'));
+    $project_status = sanitize_key((string) $request->get_param('status'));
+    $project_format = sanitize_key((string) $request->get_param('format'));
+    $submission_mode = sanitize_key((string) $request->get_param('mode'));
+    $post_status = $submission_mode === 'draft' ? 'draft' : 'pending';
+
+    if ($post_status === 'pending' && ($title === '' || trim(wp_strip_all_tags($content)) === '')) {
+        return new WP_Error('ecosfera_invalid_submission', __('Заголовок и описание проекта обязательны для отправки на модерацию.', 'ecosfera'), ['status' => 422]);
+    }
+
+    if ($post_status === 'draft' && $title === '' && trim(wp_strip_all_tags($content)) === '' && $excerpt === '' && $city === '') {
+        return new WP_Error('ecosfera_invalid_submission', __('Добавьте хотя бы заголовок, описание или город, чтобы сохранить черновик проекта.', 'ecosfera'), ['status' => 422]);
+    }
+
+    $post_data = [
+        'post_type' => 'project',
+        'post_status' => $post_status,
+        'post_title' => $title,
+        'post_excerpt' => $excerpt,
+        'post_content' => $content,
+        'post_author' => $user_id,
+    ];
+
+    if ($post_id > 0) {
+        if (!ecosfera_user_can_edit_post($post_id, 'project', $user_id)) {
+            return new WP_Error('ecosfera_forbidden', __('Нельзя редактировать этот проект.', 'ecosfera'), ['status' => 403]);
+        }
+
+        $post_data['ID'] = $post_id;
+        $saved_post_id = wp_update_post($post_data, true);
+    } else {
+        $saved_post_id = wp_insert_post($post_data, true);
+    }
+
+    if (is_wp_error($saved_post_id)) {
+        return $saved_post_id;
+    }
+
+    ecosfera_update_field_or_meta((int) $saved_post_id, 'city', $city);
+
+    if ($project_status !== '') {
+        ecosfera_update_field_or_meta((int) $saved_post_id, 'status', $project_status);
+    }
+
+    if ($project_format !== '') {
+        ecosfera_update_field_or_meta((int) $saved_post_id, 'format', $project_format);
+    }
+
+    return new WP_REST_Response(
+        [
+            'success' => true,
+            'message' => $post_status === 'draft'
+                ? __('Черновик проекта сохранён.', 'ecosfera')
+                : __('Проект отправлен на модерацию.', 'ecosfera'),
+            'postId' => $saved_post_id,
+            'postStatus' => $post_status,
+        ],
+        $post_id > 0 ? 200 : 201
+    );
+}
+
 function ecosfera_register_api_routes(): void
 {
     register_rest_route(
@@ -150,44 +290,19 @@ function ecosfera_register_api_routes(): void
         '/article-submissions',
         [
             'methods' => WP_REST_Server::CREATABLE,
-            'callback' => static function (WP_REST_Request $request): WP_REST_Response|WP_Error {
-                if (!is_user_logged_in()) {
-                    return new WP_Error('ecosfera_forbidden', __('Требуется авторизация.', 'ecosfera'), ['status' => 401]);
-                }
-
-                $title = sanitize_text_field((string) $request->get_param('title'));
-                $excerpt = sanitize_textarea_field((string) $request->get_param('excerpt'));
-                $content = wp_kses_post((string) $request->get_param('content'));
-
-                if ($title === '' || trim(wp_strip_all_tags($content)) === '') {
-                    return new WP_Error('ecosfera_invalid_submission', __('Title and content are required.', 'ecosfera'), ['status' => 422]);
-                }
-
-                $post_id = wp_insert_post(
-                    [
-                        'post_type' => 'article',
-                        'post_status' => 'pending',
-                        'post_title' => $title,
-                        'post_excerpt' => $excerpt,
-                        'post_content' => $content,
-                        'post_author' => get_current_user_id(),
-                    ],
-                    true
-                );
-
-                if (is_wp_error($post_id)) {
-                    return $post_id;
-                }
-
-                return new WP_REST_Response(
-                    [
-                        'success' => true,
-                        'message' => __('Статья отправлена на модерацию.', 'ecosfera'),
-                        'postId' => $post_id,
-                    ],
-                    201
-                );
+            'callback' => 'ecosfera_save_article_submission',
+            'permission_callback' => static function (): bool {
+                return is_user_logged_in();
             },
+        ]
+    );
+
+    register_rest_route(
+        'ecosfera/v1',
+        '/project-submissions',
+        [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => 'ecosfera_save_project_submission',
             'permission_callback' => static function (): bool {
                 return is_user_logged_in();
             },
@@ -480,7 +595,7 @@ function ecosfera_register_api_routes(): void
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => static function (): WP_REST_Response|WP_Error {
                 if (!is_user_logged_in()) {
-                    return new WP_Error('ecosfera_not_logged_in', __('You are not logged in.', 'ecosfera'), ['status' => 401]);
+                    return new WP_Error('ecosfera_not_logged_in', __('Вы не вошли в аккаунт.', 'ecosfera'), ['status' => 401]);
                 }
 
                 wp_logout();

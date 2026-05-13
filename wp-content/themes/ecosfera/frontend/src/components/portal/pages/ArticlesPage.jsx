@@ -2,8 +2,18 @@ import { useState } from 'react';
 
 const FALLBACK_ARTICLE_IMAGE = '/images/unsplash/photo-1519125323398-675f0ddb6308-w1200-q80.jpg';
 
-function buildLoginUrl(siteUrl) {
-  return `${siteUrl || '/'}#login`;
+function buildPortalPageUrl(siteUrl, pageId, params = {}) {
+  const search = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      search.set(key, String(value));
+    }
+  });
+
+  const query = search.toString();
+
+  return `${siteUrl || '/'}#${pageId}${query ? `?${query}` : ''}`;
 }
 
 function filterArticles(items, topic, search, sort) {
@@ -35,83 +45,23 @@ function filterArticles(items, topic, search, sort) {
   return filtered;
 }
 
-export function ArticlesPage({ data }) {
+export function ArticlesPage({ data, changePage }) {
   const articles = data?.collections?.articles || [];
   const topics = Array.from(new Set(articles.flatMap((article) => article.topics || [])));
-  const [view, setView] = useState('list');
   const [search, setSearch] = useState('');
   const [topic, setTopic] = useState('all');
   const [sort, setSort] = useState('newest');
-  const [form, setForm] = useState({
-    title: '',
-    excerpt: '',
-    content: '',
-  });
-  const [submitState, setSubmitState] = useState({
-    status: 'idle',
-    message: '',
-  });
-
   const filtered = filterArticles(articles, topic, search, sort);
   const isLoggedIn = Boolean(data?.user?.loggedIn);
-  const loginUrl = buildLoginUrl(data?.site?.url);
+  const loginUrl = buildPortalPageUrl(data?.site?.url, 'login');
 
-  const handleChange = (field) => (event) => {
-    setForm((current) => ({
-      ...current,
-      [field]: event.target.value,
-    }));
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!isLoggedIn) {
-      setSubmitState({
-        status: 'error',
-        message: 'Только зарегистрированные пользователи могут публиковать статьи.',
-      });
+  const openEditor = () => {
+    if (typeof changePage === 'function') {
+      changePage('article-editor');
       return;
     }
 
-    setSubmitState({
-      status: 'submitting',
-      message: 'Отправляем статью на модерацию...',
-    });
-
-    try {
-      const response = await fetch(data?.rest?.articleSubmission, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-WP-Nonce': data?.rest?.nonce || '',
-        },
-        body: JSON.stringify(form),
-      });
-
-      const payload = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        const message = payload?.message || 'Не удалось отправить статью.';
-        throw new Error(message);
-      }
-
-      setForm({
-        title: '',
-        excerpt: '',
-        content: '',
-      });
-      setSubmitState({
-        status: 'success',
-        message: 'Статья отправлена на модерацию. Она появится на сайте после одобрения администратором.',
-      });
-    } catch (error) {
-      setSubmitState({
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Не удалось отправить статью.',
-      });
-    }
+    window.location.href = buildPortalPageUrl(data?.site?.url, 'article-editor');
   };
 
   return (
@@ -167,109 +117,39 @@ export function ArticlesPage({ data }) {
         </div>
       </header>
 
-      {view === 'list' ? (
-        <div id="art-view-list" className="art-view">
-          <div className="art-grid container" role="list" aria-label="Список статей">
-            {filtered.length ? (
-              filtered.map((article) => (
-                <a key={article.id} className="art-card" href={article.url}>
-                  <img src={article.featuredImage || FALLBACK_ARTICLE_IMAGE} alt={article.title} />
-                  <div className="art-card__body">
-                    <div className="art-kicker">{article.topics?.[0] || 'Статья'}</div>
-                    <h3>{article.title}</h3>
-                    <p>{article.excerpt || 'Полная версия статьи доступна по клику.'}</p>
-                    <div className="art-card__meta">
-                      <span>{article.authorName || 'Редакция'}</span>
-                      <span>{article.readingTime ? `${article.readingTime} мин` : article.dateDisplay}</span>
-                    </div>
+      <div id="art-view-list" className="art-view">
+        <div className="art-grid container" role="list" aria-label="Список статей">
+          {filtered.length ? (
+            filtered.map((article) => (
+              <a key={article.id} className="art-card" href={article.url}>
+                <img src={article.featuredImage || FALLBACK_ARTICLE_IMAGE} alt={article.title} />
+                <div className="art-card__body">
+                  <div className="art-kicker">{article.topics?.[0] || 'Статья'}</div>
+                  <h3>{article.title}</h3>
+                  <p>{article.excerpt || 'Полная версия статьи доступна по клику.'}</p>
+                  <div className="art-card__meta">
+                    <span>{article.authorName || 'Редакция'}</span>
+                    <span>{article.readingTime ? `${article.readingTime} мин` : article.dateDisplay}</span>
                   </div>
-                </a>
-              ))
-            ) : (
-              <div className="art-empty">Пока нет опубликованных статей. Добавьте первую запись в админке WordPress.</div>
-            )}
-          </div>
-          <div className="art-load-more container">
-            {isLoggedIn ? (
-              <button className="btn-secondary" type="button" onClick={() => setView('write')}>
-                Предложить статью
-              </button>
-            ) : (
-              <a className="btn-secondary" href={loginUrl}>
-                Войти, чтобы опубликовать статью
+                </div>
               </a>
-            )}
-          </div>
+            ))
+          ) : (
+            <div className="art-empty">Пока нет опубликованных статей. Добавьте первую запись в админке WordPress.</div>
+          )}
         </div>
-      ) : null}
-
-      {view === 'write' ? (
-        <div id="art-view-write" className="art-view">
-          <form className="art-composer container" onSubmit={handleSubmit}>
-            <button className="art-back" type="button" onClick={() => setView('list')}>
-              Отмена
+        <div className="art-load-more container">
+          {isLoggedIn ? (
+            <button className="btn-secondary" type="button" onClick={openEditor}>
+              Написать статью
             </button>
-            <div className="art-composer__header">
-              <h2 className="art-composer__title">Новая статья</h2>
-              <p className="art-composer__sub">
-                После отправки статья создаётся в WordPress со статусом `pending` и не публикуется автоматически.
-              </p>
-            </div>
-
-            {isLoggedIn ? (
-              <>
-                <div className="form-group">
-                  <label className="form-label">Заголовок</label>
-                  <input
-                    className="form-input art-composer__title-input"
-                    placeholder="Введите заголовок статьи..."
-                    value={form.title}
-                    onChange={handleChange('title')}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Краткий анонс</label>
-                  <textarea
-                    className="form-input"
-                    rows="4"
-                    placeholder="Краткое описание статьи..."
-                    value={form.excerpt}
-                    onChange={handleChange('excerpt')}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Полный текст</label>
-                  <textarea
-                    className="form-input art-composer__content-input"
-                    rows="12"
-                    placeholder="Введите полный текст статьи..."
-                    value={form.content}
-                    onChange={handleChange('content')}
-                    required
-                  />
-                </div>
-                {submitState.message ? (
-                  <p className={`art-submit-message art-submit-message--${submitState.status}`}>{submitState.message}</p>
-                ) : null}
-                <div className="art-composer__actions">
-                  <button
-                    className="btn-primary"
-                    type="submit"
-                    disabled={submitState.status === 'submitting'}
-                  >
-                    {submitState.status === 'submitting' ? 'Отправляем...' : 'Отправить на модерацию →'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="art-empty">
-                Для отправки статьи нужно <a href={loginUrl}>войти в аккаунт</a>.
-              </div>
-            )}
-          </form>
+          ) : (
+            <a className="btn-secondary" href={loginUrl}>
+              Войти, чтобы написать статью
+            </a>
+          )}
         </div>
-      ) : null}
+      </div>
     </>
   );
 }
